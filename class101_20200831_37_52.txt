@@ -1,0 +1,146 @@
+﻿-- 테이블 순서는 관계를 고려하여 한 번에 실행해도 에러가 발생하지 않게 정렬되었습니다.
+
+-- Product Table Create SQL
+CREATE TABLE Product
+(
+    `product_idx`    INT            NOT NULL    AUTO_INCREMENT COMMENT '상품 인덱스', 
+    `product_name`   VARCHAR(45)    NOT NULL    COMMENT '상품 이름', 
+    `product_thumb`  TEXT           NULL        COMMENT '상품 썸네일', 
+    `product_ctg`    VARCHAR(45)    NOT NULL    COMMENT '상품 카테고리', 
+    `product_price`  INT            NOT NULL    COMMENT '상품 가격', 
+    `is_free`        CHAR(1)        NULL        COMMENT '무료배송여부(Y/N)', 
+    `created_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`     CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `discount_rate`  INT            NULL        COMMENT '할인률', 
+    `seller`         VARCHAR(45)    NOT NULL    COMMENT '판매업체', 
+    `share_url`      TEXT           NULL        COMMENT '공유링크', 
+    PRIMARY KEY (product_idx)
+);
+
+ALTER TABLE Product COMMENT 'store에서 판매되는 상품들 table';
+
+
+-- Product Table Create SQL
+CREATE TABLE Likes
+(
+    `seleted_idx`  INT            NOT NULL    COMMENT '클래스 인덱스/상품 인덱스', 
+    `idx_type`     VARCHAR(45)    NOT NULL    COMMENT '인덱스 타입', 
+    `created_at`   VARCHAR(45)    NOT NULL    DEFAULT 'CURRENT_TIMESTAMP' COMMENT '생성', 
+    `updated_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `user_email`   VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일'
+);
+
+ALTER TABLE Likes COMMENT '찜 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE User
+(
+    `user_email`   INT            NOT NULL    COMMENT '사용자 이메일', 
+    `user_name`    VARCHAR(45)    NOT NULL    COMMENT '사용자 이름', 
+    `user_phone`   VARCHAR(45)    NOT NULL    COMMENT '사용자 번호', 
+    `user_pwd`     VARCHAR(45)    NOT NULL    COMMENT '비밀번호', 
+    `created_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `profile_img`  TEXT           NULL        COMMENT '사용자 프로필사진', 
+    `membership`   VARCHAR(45)    NULL        COMMENT '멤버쉽', 
+    `nickname`     VARCHAR(45)    NOT NULL    COMMENT '닉네임', 
+    PRIMARY KEY (user_email)
+);
+
+ALTER TABLE User COMMENT '사용자 table';
+
+
+-- Product Table Create SQL
+CREATE TABLE Class_review
+(
+    `c_review_idx`  INT            NOT NULL    AUTO_INCREMENT COMMENT '클래스 리뷰 인덱스', 
+    `class_idx`     VARCHAR(45)    NOT NULL    COMMENT '클래스 인덱스', 
+    `user_email`    VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일', 
+    `is_satisfied`  CHAR(1)        NOT NULL    COMMENT '만족/불만족 여부', 
+    `c_contents`    VARCHAR(45)    NOT NULL    COMMENT '리뷰 내용', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`    CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    PRIMARY KEY (c_review_idx)
+);
+
+ALTER TABLE Class_review COMMENT '클래스 리뷰';
+
+
+-- Product Table Create SQL
+CREATE TABLE Product_review
+(
+    `p_review_idx`  INT            NOT NULL    AUTO_INCREMENT COMMENT '상품 리뷰 인덱스', 
+    `product_idx`   VARCHAR(45)    NOT NULL    COMMENT '상품 인덱스', 
+    `user_email`    VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일', 
+    `p_contents`    VARCHAR(45)    NOT NULL    COMMENT '리뷰 내용', 
+    `star`          INT            NOT NULL    COMMENT '리뷰 별점', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`    CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `help_count`    INT            NOT NULL    DEFAULT 0 COMMENT '도움수', 
+    PRIMARY KEY (p_review_idx)
+);
+
+ALTER TABLE Product_review COMMENT '상품 리뷰';
+
+
+-- Product Table Create SQL
+CREATE TABLE Review_photos
+(
+    `p_review_idx`  INT     NOT NULL    COMMENT '상품 리뷰 인덱스', 
+    `photo`         TEXT    NOT NULL    COMMENT '리뷰 사진'
+);
+
+ALTER TABLE Review_photos COMMENT 'product review table에 필요한 사진';
+
+
+-- Product Table Create SQL
+CREATE TABLE Creator
+(
+    `creator_idx`  INT            NOT NULL    COMMENT '크리에이터 인덱스', 
+    `user_email`   VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일', 
+    `class_idx`    INT            NOT NULL    COMMENT '클래스 인덱스', 
+    `created_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제'
+);
+
+ALTER TABLE Creator COMMENT '크리에이터 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Community_post
+(
+    `post_idx`       INT            NOT NULL    AUTO_INCREMENT COMMENT '글 인덱스', 
+    `class_idx`      INT            NOT NULL    COMMENT '클래스 인덱스', 
+    `user_email`     VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일', 
+    `post_contents`  VARCHAR(45)    NOT NULL    COMMENT '내용', 
+    `post_photo`     TEXT           NULL        COMMENT '사진첨부', 
+    `created_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`     CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    PRIMARY KEY (post_idx)
+);
+
+ALTER TABLE Community_post COMMENT '클래스별 커뮤니티 글 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Community_comment
+(
+    `post_idx`          INT            NOT NULL    COMMENT '글 인덱스', 
+    `user_email`        VARCHAR(45)    NOT NULL    COMMENT '사용자이메일', 
+    `comment_contents`  VARCHAR(45)    NOT NULL    COMMENT '댓글 내용', 
+    `created_at`        TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`        TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`        CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제'
+);
+
+ALTER TABLE Community_comment COMMENT '커뮤니티 글 댓글 테이블';
+
+
