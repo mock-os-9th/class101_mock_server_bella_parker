@@ -1,0 +1,285 @@
+﻿-- 테이블 순서는 관계를 고려하여 한 번에 실행해도 에러가 발생하지 않게 정렬되었습니다.
+
+-- Product Table Create SQL
+CREATE TABLE Product
+(
+    `product_idx`    INT            NOT NULL    AUTO_INCREMENT COMMENT '상품 인덱스', 
+    `product_name`   VARCHAR(45)    NOT NULL    COMMENT '상품 이름', 
+    `product_thumb`  TEXT           NULL        COMMENT '상품 썸네일', 
+    `product_ctg`    VARCHAR(45)    NOT NULL    COMMENT '상품 카테고리', 
+    `product_price`  INT            NOT NULL    COMMENT '상품 가격', 
+    `is_free`        CHAR(1)        NULL        COMMENT '무료배송여부(Y/N)', 
+    `created_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`     CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `discount_rate`  INT            NULL        COMMENT '할인률', 
+    `seller`         VARCHAR(45)    NOT NULL    COMMENT '판매업체', 
+    `share_url`      TEXT           NULL        COMMENT '공유링크', 
+    PRIMARY KEY (product_idx)
+);
+
+ALTER TABLE Product COMMENT 'store에서 판매되는 상품들 table';
+
+
+-- Product Table Create SQL
+CREATE TABLE Likes
+(
+    `seleted_idx`  INT            NOT NULL    COMMENT '클래스 인덱스/상품 인덱스', 
+    `idx_type`     VARCHAR(45)    NOT NULL    COMMENT '인덱스 타입', 
+    `created_at`   VARCHAR(45)    NOT NULL    DEFAULT 'CURRENT_TIMESTAMP' COMMENT '생성', 
+    `updated_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `user_idx`     INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `likes_idx`    INT            NOT NULL    AUTO_INCREMENT COMMENT '찜 인덱스', 
+    PRIMARY KEY (likes_idx)
+);
+
+ALTER TABLE Likes COMMENT '찜 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE User
+(
+    `user_email`   VARCHAR(45)    NOT NULL    COMMENT '사용자 이메일', 
+    `user_name`    VARCHAR(45)    NOT NULL    COMMENT '사용자 이름', 
+    `user_phone`   VARCHAR(45)    NOT NULL    COMMENT '사용자 번호', 
+    `user_pwd`     VARCHAR(45)    NOT NULL    COMMENT '비밀번호', 
+    `created_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`   TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `profile_img`  TEXT           NULL        COMMENT '사용자 프로필사진', 
+    `membership`   VARCHAR(45)    NULL        COMMENT '멤버쉽', 
+    `nickname`     VARCHAR(45)    NOT NULL    COMMENT '닉네임', 
+    `user_idx`     INT            NOT NULL    AUTO_INCREMENT COMMENT '사용자 인덱스', 
+    PRIMARY KEY (user_idx)
+);
+
+ALTER TABLE User COMMENT '사용자 table';
+
+
+-- Product Table Create SQL
+CREATE TABLE Class_review
+(
+    `c_review_idx`  INT            NOT NULL    AUTO_INCREMENT COMMENT '클래스 리뷰 인덱스', 
+    `class_idx`     INT            NOT NULL    COMMENT '클래스 인덱스', 
+    `user_idx`      INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `is_satisfied`  CHAR(1)        NOT NULL    COMMENT '만족/불만족 여부', 
+    `c_contents`    VARCHAR(45)    NOT NULL    COMMENT '리뷰 내용', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`    CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    PRIMARY KEY (c_review_idx)
+);
+
+ALTER TABLE Class_review COMMENT '클래스 리뷰';
+
+
+-- Product Table Create SQL
+CREATE TABLE Product_review
+(
+    `p_review_idx`  INT            NOT NULL    AUTO_INCREMENT COMMENT '상품 리뷰 인덱스', 
+    `product_idx`   INT            NOT NULL    COMMENT '상품 인덱스', 
+    `user_idx`      INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `p_contents`    VARCHAR(45)    NOT NULL    COMMENT '리뷰 내용', 
+    `star`          INT            NOT NULL    COMMENT '리뷰 별점', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`    CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `help_count`    INT            NOT NULL    DEFAULT 0 COMMENT '도움수', 
+    PRIMARY KEY (p_review_idx)
+);
+
+ALTER TABLE Product_review COMMENT '상품 리뷰';
+
+
+-- Product Table Create SQL
+CREATE TABLE Review_photos
+(
+    `p_review_idx`  INT     NOT NULL    COMMENT '상품 리뷰 인덱스', 
+    `photo`         TEXT    NOT NULL    COMMENT '리뷰 사진', 
+    `photo_idx`     INT     NOT NULL    AUTO_INCREMENT COMMENT '사진 인덱스', 
+    PRIMARY KEY (photo_idx)
+);
+
+ALTER TABLE Review_photos COMMENT 'product review table에 필요한 사진';
+
+
+-- Product Table Create SQL
+CREATE TABLE Creator
+(
+    `creator_idx`  INT          NOT NULL    AUTO_INCREMENT COMMENT '크리에이터 인덱스', 
+    `user_idx`     INT          NOT NULL    COMMENT '사용자 인덱스', 
+    `created_at`   TIMESTAMP    NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`   TIMESTAMP    NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`   CHAR(1)      NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    PRIMARY KEY (creator_idx)
+);
+
+ALTER TABLE Creator COMMENT '크리에이터 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Community_post
+(
+    `post_idx`       INT            NOT NULL    AUTO_INCREMENT COMMENT '글 인덱스', 
+    `class_idx`      INT            NOT NULL    COMMENT '클래스 인덱스', 
+    `user_idx`       INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `post_contents`  VARCHAR(45)    NOT NULL    COMMENT '내용', 
+    `post_photo`     TEXT           NULL        COMMENT '사진첨부', 
+    `created_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`     TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`     CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    PRIMARY KEY (post_idx)
+);
+
+ALTER TABLE Community_post COMMENT '클래스별 커뮤니티 글 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Community_comment
+(
+    `post_idx`          INT            NOT NULL    COMMENT '글 인덱스', 
+    `user_idx`          INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `comment_contents`  VARCHAR(45)    NOT NULL    COMMENT '댓글 내용', 
+    `created_at`        TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`        TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`        CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `comment_idx`       INT            NOT NULL    AUTO_INCREMENT COMMENT '댓글 인덱스', 
+    PRIMARY KEY (comment_idx)
+);
+
+ALTER TABLE Community_comment COMMENT '커뮤니티 글 댓글 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Coupon
+(
+    `coupon_idx`    INT            NOT NULL    AUTO_INCREMENT COMMENT '쿠폰 인덱스', 
+    `coupon_name`   VARCHAR(45)    NOT NULL    COMMENT '쿠폰명', 
+    `coupon_price`  VARCHAR(45)    NOT NULL    COMMENT '할인금액', 
+    `due_date`      DATE           NOT NULL    COMMENT '만료날짜', 
+    `coupon_ctg`    VARCHAR(45)    NULL        COMMENT '카테고리', 
+    `class_idx`     INT            NULL        COMMENT '클래스 인덱스(여기서만 사용가능한 쿠폰)', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '생성', 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP COMMENT '수정', 
+    `is_deleted`    CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '삭제', 
+    `user_idx`      INT            NOT NULL    COMMENT '사용자 인덱스', 
+    `is_used`       CHAR(1)        NOT NULL    DEFAULT 'N' COMMENT '사용여부', 
+    PRIMARY KEY (coupon_idx)
+);
+
+ALTER TABLE Coupon COMMENT '쿠폰 테이블';
+
+
+-- Product Table Create SQL
+CREATE TABLE Package
+(
+    `package_idx`        INT              NOT NULL    AUTO_INCREMENT COMMENT '패키지 idx', 
+    `class_idx`          INT              NOT NULL    COMMENT '클래스 idx', 
+    `package_name`       VARCHAR(50)      NOT NULL    COMMENT '패키지 명', 
+    `discount_rate`      NUMERIC(3, 2)    NOT NULL    DEFAULT 0.00 COMMENT '할인률', 
+    `stock`              INT              NOT NULL    DEFAULT 0 COMMENT '재고', 
+    `package_thumb`      TEXT             NOT NULL    COMMENT '썸네일 링크', 
+    `installment_month`  INT              NOT NULL    COMMENT '할부 개월 수', 
+    PRIMARY KEY (package_idx)
+);
+
+ALTER TABLE Package COMMENT '클래스의 패키지';
+
+
+-- Product Table Create SQL
+CREATE TABLE Class
+(
+    `class_idx`          INT            NOT NULL    AUTO_INCREMENT COMMENT '클래스 id', 
+    `class_name`         VARCHAR(50)    NOT NULL    COMMENT '클래스명', 
+    `class_ctg`          VARCHAR(10)    NOT NULL    COMMENT '공예미술 등', 
+    `creator_id`         INT            NOT NULL    COMMENT '강사(크리에이터) ID', 
+    `open_date`          TIMESTAMP      NOT NULL    COMMENT '개강 날짜', 
+    `share_url`          text           NOT NULL    COMMENT '공유 링크', 
+    `target`             VARCHAR(10)    NOT NULL    COMMENT '입문자대상 ; 초급자대상', 
+    `is_early_bird`      CHAR(1)        NOT NULL    DEFAULT ''N'' COMMENT '얼리버드 여부', 
+    `created_at`         TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`         TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `is_deleted`         char(1)        NOT NULL    DEFAULT ''N'', 
+    `class_thumb`        TEXT           NOT NULL    COMMENT '썸네일 링크', 
+    `discount_deadline`  TIMESTAMP      NULL        COMMENT 'now()와 비교해서 할인 남은시간 계산', 
+    PRIMARY KEY (class_idx)
+);
+
+ALTER TABLE Class COMMENT '클래스';
+
+
+-- Product Table Create SQL
+CREATE TABLE Purchase
+(
+    `purchase_idx`    INT            NOT NULL    AUTO_INCREMENT COMMENT '구매 idx', 
+    `item_idx`        INT            NOT NULL    COMMENT '상품 idx', 
+    `user_idx`        INT            NOT NULL    COMMENT '사용자 idx', 
+    `item_type`       VARCHAR(10)    NOT NULL    COMMENT '패키지 or 스토어', 
+    `user_phone`      VARCHAR(45)    NOT NULL    COMMENT '사용자 전화번호', 
+    `coupon_idx`      INT            NULL        COMMENT '어떤 쿠폰 사용했는지', 
+    `payment_type`    VARCHAR(10)    NOT NULL    COMMENT '결제수단', 
+    `item_discount`   INT            NOT NULL    DEFAULT 0 COMMENT '????', 
+    `delivery_price`  INT            NOT NULL    DEFAULT 0 COMMENT '배송료', 
+    `origin_price`    INT            NOT NULL    DEFAULT 0 COMMENT '원가', 
+    `created_at`      TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`      TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `is_deleted`      char(1)        NOT NULL    DEFAULT ''N'', 
+    PRIMARY KEY (purchase_idx)
+);
+
+ALTER TABLE Purchase COMMENT '구매내역';
+
+
+-- Product Table Create SQL
+CREATE TABLE Component
+(
+    `component_idx`    INT              NOT NULL    AUTO_INCREMENT COMMENT '구성품 idx', 
+    `package_idx`      INT              NOT NULL    COMMENT '패키지 idx', 
+    `component_name`   VARCHAR(50)      NOT NULL    COMMENT '구성품 명', 
+    `origin_price`     INT              NOT NULL    DEFAULT 0 COMMENT '원가', 
+    `discount_rate`    NUMERIC(3, 2)    NOT NULL    DEFAULT 0.00 COMMENT '할인률', 
+    `component_thumb`  TEXT             NOT NULL    COMMENT '썸네일 링크', 
+    PRIMARY KEY (component_idx)
+);
+
+ALTER TABLE Component COMMENT '패키지 구성품';
+
+
+-- Product Table Create SQL
+CREATE TABLE Not_opened_class
+(
+    `class_idx`    INT    NOT NULL    COMMENT '클래스 idx', 
+    `cheer_goal`   INT    NOT NULL    COMMENT '목표 응원 수', 
+    `cheer_count`  INT    NOT NULL    COMMENT '응원 수', 
+    PRIMARY KEY (class_idx)
+);
+
+
+-- Product Table Create SQL
+CREATE TABLE Delivery
+(
+    `delivery_idx`     INT             NOT NULL    AUTO_INCREMENT COMMENT '배송 idx', 
+    `purchase_idx`     INT             NOT NULL    COMMENT '구매 idx', 
+    `component_idx`    INT             NOT NULL    COMMENT '구성품idx', 
+    `delivery_status`  VARCHAR(20)     NOT NULL    COMMENT '배송 상태', 
+    `address`          VARCHAR(100)    NOT NULL    COMMENT '배송지', 
+    `user_request`     varchar(50)     NULL        COMMENT '배송 요청사항', 
+    `created_at`       TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`       TIMESTAMP       NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    PRIMARY KEY (delivery_idx)
+);
+
+ALTER TABLE Delivery COMMENT '배';
+
+
+-- Product Table Create SQL
+CREATE TABLE Class_img
+(
+    `image_idx`  INT     NOT NULL    COMMENT '이미지 idx', 
+    `class_idx`  INT     NOT NULL    COMMENT '클래스 idx', 
+    `class_img`  TEXT    NOT NULL, 
+    PRIMARY KEY (image_idx)
+);
+
+
