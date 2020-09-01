@@ -1,0 +1,112 @@
+﻿-- 테이블 순서는 관계를 고려하여 한 번에 실행해도 에러가 발생하지 않게 정렬되었습니다.
+
+-- class Table Create SQL
+CREATE TABLE class
+(
+    `class_idx`          INT              NOT NULL    AUTO_INCREMENT COMMENT '클래스 id', 
+    `class_name`         VARCHAR(45)      NOT NULL    COMMENT '클래스명', 
+    `class_ctg`          VARCHAR(45)      NOT NULL    COMMENT '공예/미술 등', 
+    `creator_id`         INT              NOT NULL    COMMENT '강사(크리에이터) ID', 
+    `open_date`          TIMESTAMP        NOT NULL    COMMENT '개강 날짜', 
+    `share_url`          text             NOT NULL    COMMENT '공유 링크', 
+    `target`             VARCHAR(45)      NOT NULL    COMMENT '입문자대상 / 초급자대상', 
+    `installment_month`  INT              NOT NULL    DEFAULT 5 COMMENT '할부 개월 수', 
+    `origin_price`       INT              NULL        DEFAULT 0 COMMENT '원가', 
+    `discount_rate`      NUMERIC(3, 2)    NOT NULL    DEFAULT 0.00 COMMENT '할인율', 
+    `monthly_price`      INT              NOT NULL    DEFAULT 0 COMMENT '월 결제금액', 
+    `total_discount`     INT              NULL        DEFAULT 0 COMMENT '총 할인액', 
+    `discount_deadline`  TIMESTAMP        NULL        COMMENT '총 할인액 남은시간', 
+    `coupon`             INT              NULL        DEFAULT 0 COMMENT '쿠폰 할인금액', 
+    `is_early_bird`      CHAR(1)          NOT NULL    DEFAULT 'N' COMMENT '얼리버드 여부', 
+    `created_at`         TIMESTAMP        NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`         TIMESTAMP        NOT NULL    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+    `is_deleted`         char(1)          NOT NULL, 
+    `class_thumb`        TEXT             NOT NULL    COMMENT '썸네일 링크', 
+    PRIMARY KEY (class_idx)
+);
+
+ALTER TABLE class COMMENT '클래스';
+
+
+-- class Table Create SQL
+CREATE TABLE purchase
+(
+    `purchase_idx`  INT            NOT NULL    AUTO_INCREMENT COMMENT '구매 id', 
+    `item_idx`      VARCHAR(45)    NOT NULL    COMMENT '상품 id', 
+    `user_email`    VARCHAR(45)    NOT NULL    COMMENT '사용자 id', 
+    `item_type`     VARCHAR(45)    NOT NULL    COMMENT '패키지 or 스토어', 
+    `created_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`    TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+    `is_deleted`    char(1)        NOT NULL, 
+    PRIMARY KEY (purchase_idx, item_idx, user_email, item_type)
+);
+
+
+-- class Table Create SQL
+CREATE TABLE package
+(
+    `package_idx`    INT              NOT NULL    AUTO_INCREMENT COMMENT '패키지 idx', 
+    `class_idx`      VARCHAR(45)      NOT NULL    COMMENT '클래스 idx', 
+    `package_name`   VARCHAR(45)      NOT NULL    COMMENT '패키지 명', 
+    `discount_rate`  NUMERIC(3, 2)    NOT NULL    DEFAULT 0.00 COMMENT '할인률', 
+    `monthly_price`  INT              NOT NULL    DEFAULT 0 COMMENT '월 결제금액', 
+    `final_price`    INT              NOT NULL    DEFAULT 0 COMMENT '총 결제금액', 
+    `origin_price`   INT              NOT NULL    DEFAULT 0 COMMENT '원가', 
+    `stock`          INT              NOT NULL    DEFAULT 0 COMMENT '재고', 
+    `package_thumb`  TEXT             NOT NULL    COMMENT '썸네일 링크', 
+    PRIMARY KEY (package_idx, class_idx)
+);
+
+ALTER TABLE package COMMENT '클래스의 패키지';
+
+
+-- class Table Create SQL
+CREATE TABLE component
+(
+    `component_idx`    INT              NOT NULL    AUTO_INCREMENT COMMENT '구성품 idx', 
+    `package_idx`      INT              NOT NULL    COMMENT '패키지 idx', 
+    `component_name`   VARCHAR(45)      NOT NULL    COMMENT '구성품 명', 
+    `origin_price`     INT              NOT NULL    DEFAULT 0 COMMENT '원가', 
+    `discount_rate`    NUMERIC(3, 2)    NOT NULL    DEFAULT 0.00 COMMENT '할인률', 
+    `component_thumb`  TEXT             NOT NULL    COMMENT '썸네일 링크', 
+    PRIMARY KEY (component_idx, package_idx)
+);
+
+ALTER TABLE component COMMENT '패키지 구성품';
+
+
+-- class Table Create SQL
+CREATE TABLE not_opened_class
+(
+    `class_idx`    INT    NOT NULL    COMMENT '클래스 idx', 
+    `cheer_goal`   INT    NOT NULL    COMMENT '목표 응원 수', 
+    `cheer_count`  INT    NOT NULL    COMMENT '응원 수', 
+    PRIMARY KEY (class_idx)
+);
+
+
+-- class Table Create SQL
+CREATE TABLE delivery
+(
+    `delivery_idx`     INT            NOT NULL    AUTO_INCREMENT COMMENT '배송 idx', 
+    `purchase_idx`     INT            NOT NULL    COMMENT '구매 idx', 
+    `user_email`       VARCHAR(45)    NOT NULL    COMMENT '사용자 email', 
+    `component_idx`    INT            NOT NULL    COMMENT '구성품 idx', 
+    `delivery_status`  VARCHAR(45)    NOT NULL    COMMENT '배송 상태', 
+    `address`          VARCHAR(45)    NOT NULL    COMMENT '배송지', 
+    `created_at`       TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP, 
+    `updated_at`       TIMESTAMP      NOT NULL    DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP, 
+    `is_deleted`       char(1)        NOT NULL, 
+    PRIMARY KEY (delivery_idx)
+);
+
+
+-- class Table Create SQL
+CREATE TABLE class_img
+(
+    `class_idx`  INT     NOT NULL    COMMENT '클래스 idx', 
+    `class_img`  TEXT    NOT NULL, 
+    PRIMARY KEY (class_idx, class_img)
+);
+
+

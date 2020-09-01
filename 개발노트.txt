@@ -1,0 +1,19 @@
+08.30(일)
+● DONE
+  - 서버 구축 (test, prod)
+  - RDS 인스턴스 생성
+  - ERD 초안 설계
+
+● TODO
+  - ERD 완성
+  - 더미데이터 삽입
+
+08.31(월)
+● DONE
+  - ERD 설계 완료
+  - RDS timezone, character set 설정
+  - 더미데이터 삽입
+
+● TODO
+  - api 명세서 작성
+  - 쿼리문 작성
