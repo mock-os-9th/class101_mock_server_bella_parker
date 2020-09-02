@@ -11,14 +11,15 @@ date_default_timezone_set('Asia/Seoul');
 ini_set('default_charset', 'utf8mb4');
 
 //에러출력하게 하는 코드
-error_reporting(E_ALL); ini_set("display_errors", 1);
+//error_reporting(E_ALL); ini_set("display_errors", 1);
 
 //Main Server API
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
     /* ******************   Test   ****************** */
     //store 메인페이지
-    $r->addRoute('GET', '/store', ['MainQueryController', 'getStore']);
-//    $r->addRoute('GET', '/test', ['IndexController', 'test']);
+    $r->addRoute('GET', '/store', ['MainQueryController', 'getProducts']);
+    $r->addRoute('GET', '/products', ['MainQueryController', 'prodByCtg']);
+    $r->addRoute('GET', '/{product_idx}/reviews', ['MainQueryController', 'reviewByProd']);
 //    $r->addRoute('GET', '/test/{testNo}', ['IndexController', 'testDetail']);
 //    $r->addRoute('POST', '/test', ['IndexController', 'testPost']);
 //    $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
@@ -31,15 +32,12 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     // 로그인 API
     $r->addRoute('POST', '/login', ['MainController', 'createJwt']);
 
-    // 지금, 인기 TOP 5 (패키지 판매량 기준 상위 5개)
+    // 인기, 신규, 오픈예정 클래스 (카테고리 별)
     $r->addRoute('GET', '/class', ['MainQueryController', 'getClasses']);
 
-    // 신규 클래스 (최신순 5개)
-    $r->addRoute('GET', '/class/new', ['MainQueryController', 'getNewClass']);
 
-    // 오픈 예정 클래스 조회 API
-    $r->addRoute('GET', '/class/not-opened', ['MainQueryController', 'getNotOpenedClass']);
-
+    // 클래스 좋아요 추가 / 취소
+    $r->addRoute('PATCH', '/likes/class/{class_idx}', ['MainQueryController', 'updateClassLike']);
 
 //    $r->addRoute('GET', '/users', 'get_all_users_handler');
 //    // {id} must be a number (\d+)
