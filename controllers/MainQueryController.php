@@ -77,14 +77,6 @@ try {
                 //addErrorLogs($errorLogs, $res, $req);
                 return;
             }
-            if(!hasProduct($ctg_type)){
-                $res->isSuccess = FALSE;
-                $res->code = 201;
-                $res->message = "아직 등록된 상품이 없습니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                //addErrorLogs($errorLogs, $res, $req);
-                return;
-            }
             $res->result = prodByCategory($ctg_type);
             $res->isSuccess = TRUE;
             $res->code = 100;
