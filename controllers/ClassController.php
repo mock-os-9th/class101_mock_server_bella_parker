@@ -28,61 +28,61 @@ try {
          * API Name : 테스트 API
          * 마지막 수정 날짜 : 19.04.29
          */
-        case "reviewByProd":
-            http_response_code(200);
-            if(!isValidProdIdx($vars['product_idx'])){
-                $res->isSuccess = FALSE;
-                $res->code = 200;
-                $res->message = "유효한 인덱스가 아닙니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                break;
-            }
-            if(!hasReview($vars['product_idx'])){
-                $res->isSuccess = FALSE;
-                $res->code = 201;
-                $res->message = "첫번째 리뷰를 작성하세요!";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                break;
-            }
-
-            $res->result->general = sumInfo($vars['product_idx']);
-            $res->result->detail = reviewsByProd($vars['product_idx']);
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;
-
-        case "getProducts":
-            http_response_code(200);
-            $res->result->popularity_10 = getPopular10();
-            $res->result->digital5= getDigital5();
-            $res->result->DIY5= getDIY5();
-            $res->result->art5 = getArt5();
-            $res->result->new_prod = getNewprod();
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;
-
-        case "prodByCtg":
-            http_response_code(200);
-            $ctg_type = $_GET['type'];
-            if(!($ctg_type == "EASY DIY" || $ctg_type == "굿즈" || $ctg_type == "미술재료" || $ctg_type == "공예재료" || $ctg_type == "디지털기기/ACC" || $ctg_type == "악기/음악" || $ctg_type == "헬스/뷰티/ACC" || $ctg_type == "인테리어/소품" || $ctg_type == "푸드/키친" || $ctg_type == "문구/도서" )){
-                $res->isSuccess = FALSE;
-                $res->code = 200;
-                $res->message = "잘못된 카테고리입니다.";
-                echo json_encode($res, JSON_NUMERIC_CHECK);
-                //addErrorLogs($errorLogs, $res, $req);
-                return;
-            }
-            $res->result = prodByCategory($ctg_type);
-            $res->isSuccess = TRUE;
-            $res->code = 100;
-            $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;
+//        case "reviewByProd":
+//            http_response_code(200);
+//            if(!isValidProdIdx($vars['product_idx'])){
+//                $res->isSuccess = FALSE;
+//                $res->code = 200;
+//                $res->message = "유효한 인덱스가 아닙니다.";
+//                echo json_encode($res, JSON_NUMERIC_CHECK);
+//                break;
+//            }
+//            if(!hasReview($vars['product_idx'])){
+//                $res->isSuccess = FALSE;
+//                $res->code = 201;
+//                $res->message = "첫번째 리뷰를 작성하세요!";
+//                echo json_encode($res, JSON_NUMERIC_CHECK);
+//                break;
+//            }
+//
+//            $res->result->general = sumInfo($vars['product_idx']);
+//            $res->result->detail = reviewsByProd($vars['product_idx']);
+//            $res->isSuccess = TRUE;
+//            $res->code = 100;
+//            $res->message = "조회 성공";
+//            echo json_encode($res, JSON_NUMERIC_CHECK);
+//            break;
+//
+//        case "getProducts":
+//            http_response_code(200);
+//            $res->result->popularity_10 = getPopular10();
+//            $res->result->digital5= getDigital5();
+//            $res->result->DIY5= getDIY5();
+//            $res->result->art5 = getArt5();
+//            $res->result->new_prod = getNewprod();
+//            $res->isSuccess = TRUE;
+//            $res->code = 100;
+//            $res->message = "조회 성공";
+//            echo json_encode($res, JSON_NUMERIC_CHECK);
+//            break;
+//
+//        case "prodByCtg":
+//            http_response_code(200);
+//            $ctg_type = $_GET['type'];
+//            if(!($ctg_type == "EASY DIY" || $ctg_type == "굿즈" || $ctg_type == "미술재료" || $ctg_type == "공예재료" || $ctg_type == "디지털기기/ACC" || $ctg_type == "악기/음악" || $ctg_type == "헬스/뷰티/ACC" || $ctg_type == "인테리어/소품" || $ctg_type == "푸드/키친" || $ctg_type == "문구/도서" )){
+//                $res->isSuccess = FALSE;
+//                $res->code = 200;
+//                $res->message = "잘못된 카테고리입니다.";
+//                echo json_encode($res, JSON_NUMERIC_CHECK);
+//                //addErrorLogs($errorLogs, $res, $req);
+//                return;
+//            }
+//            $res->result = prodByCategory($ctg_type);
+//            $res->isSuccess = TRUE;
+//            $res->code = 100;
+//            $res->message = "조회 성공";
+//            echo json_encode($res, JSON_NUMERIC_CHECK);
+//            break;
 
         case "getClasses":
             http_response_code(200);

@@ -105,119 +105,119 @@ function getNotOpenedClass($ctg_type)
     return $res;
 }
 
-function getPopular10(){
-    $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) order by purchase.sum desc limit 10;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute();
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function getDigital5(){
-    $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='디지털기기/ACC' order by purchase.sum limit 5;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute();
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function getDIY5(){
-    $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='EASY DIY' order by purchase.sum limit 5;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute();
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function getArt5(){
-    $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='미술재료' order by purchase.sum limit 5;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute();
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function getNewprod(){
-    $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.* from prod_total_info left outer join Product using(product_idx) where TIMESTAMPDIFF(DAY, Product.created_at, now()) <= 7 order by Product.created_at desc;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute();
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function prodByCategory($ctg_type){
-    $pdo = pdoSqlConnect();
-    $query = "select * from prod_total_info where product_ctg=?";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$ctg_type]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function reviewsByProd($product_idx){
-    $pdo = pdoSqlConnect();
-    $query = "select p_info.product_idx,p_info.names, r_info.nickname,r_info.profile_img,r_info.star,r_info.post_date,r_info.p_contents,r_info.photos,r_info.help_count from (select Product_purchase.prod_purchase_idx,Product_option.product_idx, group_concat(Product_option.option_name separator ',') as names from Product_purchase left outer join Product_option using(option_idx) group by prod_purchase_idx,product_idx) as p_info
-    left outer join (select review_info.*, User.profile_img,User.nickname from (select Product_review.p_review_idx, Product_review.prod_purchase_idx, Product_review.user_idx, Product_review.p_contents, Product_review.star, (date_format(Product_review.created_at, '%Y.%m.%d')) as post_date, Product_review.help_count, (if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as review_info
-left outer join User using(user_idx)) as r_info using(prod_purchase_idx) where product_idx=?;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$product_idx]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
+//function getPopular10(){
+//    $pdo = pdoSqlConnect();
+//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) order by purchase.sum desc limit 10;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute();
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function getDigital5(){
+//    $pdo = pdoSqlConnect();
+//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='디지털기기/ACC' order by purchase.sum limit 5;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute();
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function getDIY5(){
+//    $pdo = pdoSqlConnect();
+//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='EASY DIY' order by purchase.sum limit 5;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute();
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function getArt5(){
+//    $pdo = pdoSqlConnect();
+//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='미술재료' order by purchase.sum limit 5;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute();
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function getNewprod(){
+//    $pdo = pdoSqlConnect();
+//    $query = "select prod_total_info.* from prod_total_info left outer join Product using(product_idx) where TIMESTAMPDIFF(DAY, Product.created_at, now()) <= 7 order by Product.created_at desc;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute();
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function prodByCategory($ctg_type){
+//    $pdo = pdoSqlConnect();
+//    $query = "select * from prod_total_info where product_ctg=?";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute([$ctg_type]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
+//
+//function reviewsByProd($product_idx){
+//    $pdo = pdoSqlConnect();
+//    $query = "select p_info.product_idx,p_info.names, r_info.nickname,r_info.profile_img,r_info.star,r_info.post_date,r_info.p_contents,r_info.photos,r_info.help_count from (select Product_purchase.prod_purchase_idx,Product_option.product_idx, group_concat(Product_option.option_name separator ',') as names from Product_purchase left outer join Product_option using(option_idx) group by prod_purchase_idx,product_idx) as p_info
+//    left outer join (select review_info.*, User.profile_img,User.nickname from (select Product_review.p_review_idx, Product_review.prod_purchase_idx, Product_review.user_idx, Product_review.p_contents, Product_review.star, (date_format(Product_review.created_at, '%Y.%m.%d')) as post_date, Product_review.help_count, (if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as review_info
+//left outer join User using(user_idx)) as r_info using(prod_purchase_idx) where product_idx=?;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute([$product_idx]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
 
 // 좋아요한 클래스 존재 여부
 function isClassLikeExist($selected_idx)
@@ -298,57 +298,57 @@ function isValidClassIdx($class_idx){
 
     return $res[0]["exist"];
 }
+//
+//function sumInfo($product_idx){
+//    $pdo = pdoSqlConnect();
+//    $query = "select product_idx,round(avg(star),1) as avg_star,group_concat(photos)as photos from (select distinct Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as r
+//    left outer join (select Product_review.prod_purchase_idx, Product_review.star ,(if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as p
+//using(prod_purchase_idx) where product_idx=? group by product_idx;";
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute([$product_idx]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st = null;
+//    $pdo = null;
+//
+//    return $res;
+//}
 
-function sumInfo($product_idx){
-    $pdo = pdoSqlConnect();
-    $query = "select product_idx,round(avg(star),1) as avg_star,group_concat(photos)as photos from (select distinct Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as r
-    left outer join (select Product_review.prod_purchase_idx, Product_review.star ,(if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as p
-using(prod_purchase_idx) where product_idx=? group by product_idx;";
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$product_idx]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st = null;
-    $pdo = null;
-
-    return $res;
-}
-
-function isValidProdIdx($product_idx){
-    $pdo = pdoSqlConnect();
-    $query = "SELECT EXISTS(SELECT * FROM Product WHERE product_idx= ?) AS exist;";
-
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$product_idx]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st=null;$pdo = null;
-
-    return $res[0]["exist"];
-}
-
-function hasReview($product_idx){
-    $pdo = pdoSqlConnect();
-    $query = "SELECT EXISTS(select product_idx from Product_review left outer join (select Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as prod
-using(prod_purchase_idx) where product_idx=?) AS exist;";
-
-
-    $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$product_idx]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
-
-    $st=null;$pdo = null;
-
-    return $res[0]["exist"];
-}
+//function isValidProdIdx($product_idx){
+//    $pdo = pdoSqlConnect();
+//    $query = "SELECT EXISTS(SELECT * FROM Product WHERE product_idx= ?) AS exist;";
+//
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute([$product_idx]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st=null;$pdo = null;
+//
+//    return $res[0]["exist"];
+//}
+//
+//function hasReview($product_idx){
+//    $pdo = pdoSqlConnect();
+//    $query = "SELECT EXISTS(select product_idx from Product_review left outer join (select Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as prod
+//using(prod_purchase_idx) where product_idx=?) AS exist;";
+//
+//
+//    $st = $pdo->prepare($query);
+//    //    $st->execute([$param,$param]);
+//    $st->execute([$product_idx]);
+//    $st->setFetchMode(PDO::FETCH_ASSOC);
+//    $res = $st->fetchAll();
+//
+//    $st=null;$pdo = null;
+//
+//    return $res[0]["exist"];
+//}
 
 // CREATE
 //    function addMaintenance($message){

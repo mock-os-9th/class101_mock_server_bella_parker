@@ -1,8 +1,11 @@
 <?php
+
 require './pdos/DatabasePdo.php';
 require './pdos/IndexPdo.php';
 require './pdos/MainQueryPdo.php';
+//require './pdos/ClassPdo.php';
 require './vendor/autoload.php';
+
 
 use \Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler;
