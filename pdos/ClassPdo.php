@@ -1,6 +1,6 @@
 <?php
 //READ
-function getTopClass($ctg_type)
+function getTopClass($user_idx, $ctg_type)
 {
     $pdo = pdoSqlConnect();
     $where_clause="";
@@ -19,17 +19,20 @@ function getTopClass($ctg_type)
             break;
     }
 
-    $query = "select class_total_info.*
-from (class_total_info
+    $query = "select class_total_info.*, ifnull(like_status, 'N') as like_status
+from ((class_total_info
     left outer join (select class_idx, count(package_idx) as sales
                      from Package_purchase
                               left outer join Package using (package_idx)
                      group by class_idx
                      order by sales desc) as t using (class_idx))
-         left outer join Class_category using (class_ctg)".$where_clause." limit 5";
+         left outer join (select selected_idx as class_idx, user_idx, like_status
+                          from test.Likes
+                          where idx_type = 'class'
+                            and user_idx = ?) as s using (class_idx)) left outer join Class_category using (class_ctg)".$where_clause." limit 10";
 
     $st = $pdo->prepare($query);
-    $st->execute([]);
+    $st->execute([$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
@@ -38,7 +41,7 @@ from (class_total_info
     return $res;
 }
 
-function getNewClass($ctg_type)
+function getNewClass($user_idx,$ctg_type)
 {
     $pdo = pdoSqlConnect();
     $where_clause="";
@@ -57,13 +60,16 @@ function getNewClass($ctg_type)
             break;
     }
 
-    $query = "select class_total_info.*
-from (class_total_info
-         left outer join (Class left outer join Class_category using (class_ctg)) using (class_idx))
+    $query = "select class_total_info.*, created_at, ifnull(like_status, 'N') as like_status
+from (class_total_info left outer join (Class left outer join Class_category using (class_ctg))using (class_idx))
+         left outer join (select selected_idx as class_idx, user_idx, like_status
+                          from test.Likes
+                          where idx_type = 'class'
+                            and user_idx = ?) as t using (class_idx)
 where TIMESTAMPDIFF(DAY, created_at, now()) <= 7".$where_clause."order by created_at desc limit 5;";
 
     $st = $pdo->prepare($query);
-    $st->execute([]);
+    $st->execute([$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
@@ -72,7 +78,7 @@ where TIMESTAMPDIFF(DAY, created_at, now()) <= 7".$where_clause."order by create
     return $res;
 }
 
-function getNotOpenedClass($ctg_type)
+function getNotOpenedClass($user_idx,$ctg_type)
 {
     $pdo = pdoSqlConnect();
     $where_clause="";
@@ -91,12 +97,38 @@ function getNotOpenedClass($ctg_type)
             break;
     }
 
-    $query = "select not_open.class_idx, not_open.class_name, not_open.class_ctg, not_open.user_name, not_open.class_thumb, not_open.cheer_count, not_open.arrival, if(TIMESTAMPDIFF(DAY,now(),Class.open_date)<3,'응원 마감 임박 집계 진행 중',concat('응원 마감까지',TIMESTAMPDIFF(DAY,now(),Class.open_date),'일 남음')) as due from (select no_type.*,Class_category.ctg_type from (select class_total_info.class_idx, class_name, class_ctg, user_name, class_thumb, creator_idx, Not_opened_class.cheer_count, concat(format((Not_opened_class.cheer_count/Not_opened_class.cheer_goal)*100,0),'% 달성') as arrival from class_total_info join Not_opened_class using(class_idx)
-) as no_type left outer join Class_category using(class_ctg)) as not_open left outer join Class using(class_idx)
+    $query = "select not_open.class_idx,
+       not_open.class_name,
+       not_open.class_ctg,
+       not_open.user_name,
+       not_open.class_thumb,
+       not_open.cheer_count,
+       not_open.arrival,
+       if(TIMESTAMPDIFF(DAY, now(), Class.open_date) < 3, '응원 마감 임박 집계 진행 중',
+          concat('응원 마감까지 ', TIMESTAMPDIFF(DAY, now(), Class.open_date), '일 남음')) as due,
+       like_status
+from ((select no_type.*, Class_category.ctg_type
+      from (select class_total_info.class_idx,
+                   class_name,
+                   class_ctg,
+                   user_name,
+                   class_thumb,
+                   creator_idx,
+                   Not_opened_class.cheer_count,
+                   concat(format((Not_opened_class.cheer_count / Not_opened_class.cheer_goal) * 100, 0),
+                          '% 달성') as arrival
+            from class_total_info
+                     join Not_opened_class using (class_idx)
+           ) as no_type
+               left outer join Class_category using (class_ctg)) as not_open
+         left outer join Class using (class_idx)) left outer join (select selected_idx as class_idx, user_idx, like_status
+from test.Likes
+where idx_type='class'
+and user_idx = ?) as t using (class_idx)
 ".$where_clause."limit 5;";
 
     $st = $pdo->prepare($query);
-    $st->execute();
+    $st->execute([$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
@@ -105,128 +137,67 @@ function getNotOpenedClass($ctg_type)
     return $res;
 }
 
-//function getPopular10(){
-//    $pdo = pdoSqlConnect();
-//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) order by purchase.sum desc limit 10;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute();
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function getDigital5(){
-//    $pdo = pdoSqlConnect();
-//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='디지털기기/ACC' order by purchase.sum limit 5;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute();
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function getDIY5(){
-//    $pdo = pdoSqlConnect();
-//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='EASY DIY' order by purchase.sum limit 5;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute();
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function getArt5(){
-//    $pdo = pdoSqlConnect();
-//    $query = "select prod_total_info.* from prod_total_info left outer join (select Product_option.product_idx , sum(Product_purchase.count)as sum from Product_purchase left outer join Product_option using(option_idx) group by Product_option.product_idx) as purchase using(product_idx) where prod_total_info.product_ctg='미술재료' order by purchase.sum limit 5;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute();
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function getNewprod(){
-//    $pdo = pdoSqlConnect();
-//    $query = "select prod_total_info.* from prod_total_info left outer join Product using(product_idx) where TIMESTAMPDIFF(DAY, Product.created_at, now()) <= 7 order by Product.created_at desc;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute();
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function prodByCategory($ctg_type){
-//    $pdo = pdoSqlConnect();
-//    $query = "select * from prod_total_info where product_ctg=?";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute([$ctg_type]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
-//
-//function reviewsByProd($product_idx){
-//    $pdo = pdoSqlConnect();
-//    $query = "select p_info.product_idx,p_info.names, r_info.nickname,r_info.profile_img,r_info.star,r_info.post_date,r_info.p_contents,r_info.photos,r_info.help_count from (select Product_purchase.prod_purchase_idx,Product_option.product_idx, group_concat(Product_option.option_name separator ',') as names from Product_purchase left outer join Product_option using(option_idx) group by prod_purchase_idx,product_idx) as p_info
-//    left outer join (select review_info.*, User.profile_img,User.nickname from (select Product_review.p_review_idx, Product_review.prod_purchase_idx, Product_review.user_idx, Product_review.p_contents, Product_review.star, (date_format(Product_review.created_at, '%Y.%m.%d')) as post_date, Product_review.help_count, (if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as review_info
-//left outer join User using(user_idx)) as r_info using(prod_purchase_idx) where product_idx=?;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute([$product_idx]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
+function getUpdatedClass($user_idx,$ctg_type)
+{
+    $pdo = pdoSqlConnect();
+    $where_clause="";
+    switch($ctg_type){
+        case "전체":
+            $where_clause = " ";
+            break;
+        case "크리에이티브":
+            $where_clause = " and ctg_type = '크리에이티브' ";
+            break;
+        case "커리어":
+            $where_clause = " and ctg_type = '커리어' ";
+            break;
+        case "머니":
+            $where_clause = " and ctg_type = '머니' ";
+            break;
+    }
+
+    $query = "select class_idx,
+       class_total_info.class_name,
+       class_total_info.class_ctg,
+       class_total_info.user_name,
+       class_total_info.class_thumb,
+       like_cnt,
+       satisfaction,
+       like_status,
+       update_type,
+       case
+           when timestampdiff(hour, Class.updated_at, now()) < 1
+               then concat(timestampdiff(minute, Class.updated_at, now()), '분 전')
+           when timestampdiff(day, Class.updated_at, now()) < 1
+               then concat(timestampdiff(hour, Class.updated_at, now()), '시간 전')
+           when timestampdiff(day, Class.updated_at, now()) < 7
+               then concat(timestampdiff(day, Class.updated_at, now()), '일 전')
+           end as updated_at
+from (test.class_total_info
+         left outer join (Class left outer join Class_category using (class_ctg))using (class_idx)) left outer join (select selected_idx as class_idx, user_idx, like_status
+                          from test.Likes
+                          where idx_type = 'class'
+                            and user_idx = ?) as t using (class_idx)
+where timestampdiff(day, Class.updated_at, now()) < 7".$where_clause."order by Class.updated_at desc;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
 
 // 좋아요한 클래스 존재 여부
-function isClassLikeExist($selected_idx)
+function isClassLikeExist($user_idx, $selected_idx)
 {
     $pdo = pdoSqlConnect();
     // user_id, rest_id 존재하는지 확인
-    $query = "SELECT EXISTS(select * FROM Likes WHERE user_idx = 1 and selected_idx = ? and idx_type = 'class') as exist;";
+    $query = "SELECT EXISTS(select * FROM Likes WHERE user_idx = ? and selected_idx = ? and idx_type = 'class') as exist;";
     $st = $pdo->prepare($query);
-    $st->execute([$selected_idx]);
+    $st->execute([$user_idx, $selected_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
@@ -237,50 +208,96 @@ function isClassLikeExist($selected_idx)
 }
 
 // 좋아요한 클래스 추가
-function addClassLike($selected_idx)
+function addClassLike($user_idx, $selected_idx)
 {
     $pdo = pdoSqlConnect();
-    $query="insert into Likes (user_idx, selected_idx, idx_type) values (1, ?, 'class');";
+    $query="insert into Likes (user_idx, selected_idx, idx_type) values (?, ?, 'class');";
     $st = $pdo->prepare($query);
-    $st->execute([$selected_idx]);
+    $st->execute([$user_idx, $selected_idx]);
 
     $st = null;
     $pdo = null;
 }
 
 // 클래스 좋아요 상태
-function getClassLikeStatus($selected_idx)
+function getClassLikeStatus($user_idx, $selected_idx)
 {
     $pdo = pdoSqlConnect();
-    $query="select is_deleted
+    $query="select like_status
 from Likes
-where user_idx=1 and selected_idx=? and idx_type = 'class';";
+where user_idx=? and selected_idx=? and idx_type = 'class';";
     $st = $pdo->prepare($query);
-    $st->execute([$selected_idx]);
+    $st->execute([$user_idx, $selected_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
     $st = null;
     $pdo = null;
 
-    return $res[0]['is_deleted'];
+    return $res[0]['like_status'];
 }
 
 // 클래스 좋아요 변경
-function updateClassLike($selected_idx, $is_deleted)
+function updateClassLike($user_idx, $selected_idx, $like_status)
 {
     $pdo = pdoSqlConnect();
     $query="update Likes
-            set is_deleted=?
-            where user_idx = 1
+            set like_status=?
+            where user_idx = ?
               and selected_idx = ?
               and idx_type = 'class';";
 
     $st = $pdo->prepare($query);
-    $st->execute([$is_deleted,$selected_idx]);
+    $st->execute([$like_status,$user_idx, $selected_idx]);
 
     $st = null;
     $pdo = null;
+}
+
+// 클래스 선택
+function getClassByClassIdx($user_idx, $class_idx)
+{
+    $pdo = pdoSqlConnect();
+    $query="select class_idx,
+       Class.class_name,
+       Class.class_ctg,
+       user_name,
+       Class.creator_idx,
+       group_concat(Class_img.class_img separator ',')                  as class_img,
+       is_available,
+       concat(substr(installment, 2, 3), ' 할부')                         as installment,
+       dis,
+       dis_price,
+       target,
+       satisfaction,
+       like_cnt,
+       share_url,
+       concat(Class.chapter_cnt, '개 챕터, ', Class.lecture_cnt, '개 세부강의') as class_quantity,
+       test.Class.caption,
+       format(review_cnt, 0)                                            as review_cnt,
+       concat(available_weeks, '주 수강 가능')                               as available_weeks,
+       concat(lecture_cnt, '개')                                         as lecture_cnt,
+       ifnull(like_status,'N')                                           as like_status
+from (((class_total_info
+    left outer join Class_img using (class_idx)) left outer join Class using (class_idx))
+         left outer join (select class_idx, count(*) as review_cnt
+                          from Class_review
+                          where class_idx = ?
+                          group by class_idx) as t using (class_idx)) left outer join (select selected_idx as class_idx, user_idx, like_status
+from test.Likes
+where idx_type='class'
+and user_idx = ?) as temp using (class_idx)
+where class_idx = ?
+group by class_idx;";
+    $st = $pdo->prepare($query);
+    $st->execute([$class_idx, $user_idx, $class_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
 }
 
 function isValidClassIdx($class_idx){
@@ -298,100 +315,4 @@ function isValidClassIdx($class_idx){
 
     return $res[0]["exist"];
 }
-//
-//function sumInfo($product_idx){
-//    $pdo = pdoSqlConnect();
-//    $query = "select product_idx,round(avg(star),1) as avg_star,group_concat(photos)as photos from (select distinct Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as r
-//    left outer join (select Product_review.prod_purchase_idx, Product_review.star ,(if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as p
-//using(prod_purchase_idx) where product_idx=? group by product_idx;";
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute([$product_idx]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st = null;
-//    $pdo = null;
-//
-//    return $res;
-//}
 
-//function isValidProdIdx($product_idx){
-//    $pdo = pdoSqlConnect();
-//    $query = "SELECT EXISTS(SELECT * FROM Product WHERE product_idx= ?) AS exist;";
-//
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute([$product_idx]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st=null;$pdo = null;
-//
-//    return $res[0]["exist"];
-//}
-//
-//function hasReview($product_idx){
-//    $pdo = pdoSqlConnect();
-//    $query = "SELECT EXISTS(select product_idx from Product_review left outer join (select Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as prod
-//using(prod_purchase_idx) where product_idx=?) AS exist;";
-//
-//
-//    $st = $pdo->prepare($query);
-//    //    $st->execute([$param,$param]);
-//    $st->execute([$product_idx]);
-//    $st->setFetchMode(PDO::FETCH_ASSOC);
-//    $res = $st->fetchAll();
-//
-//    $st=null;$pdo = null;
-//
-//    return $res[0]["exist"];
-//}
-
-// CREATE
-//    function addMaintenance($message){
-//        $pdo = pdoSqlConnect();
-//        $query = "INSERT INTO MAINTENANCE (MESSAGE) VALUES (?);";
-//
-//        $st = $pdo->prepare($query);
-//        $st->execute([$message]);
-//
-//        $st = null;
-//        $pdo = null;
-//
-//    }
-
-
-// UPDATE
-//    function updateMaintenanceStatus($message, $status, $no){
-//        $pdo = pdoSqlConnect();
-//        $query = "UPDATE MAINTENANCE
-//                        SET MESSAGE = ?,
-//                            STATUS  = ?
-//                        WHERE NO = ?";
-//
-//        $st = $pdo->prepare($query);
-//        $st->execute([$message, $status, $no]);
-//        $st = null;
-//        $pdo = null;
-//    }
-
-// RETURN BOOLEAN
-//    function isRedundantEmail($email){
-//        $pdo = pdoSqlConnect();
-//        $query = "SELECT EXISTS(SELECT * FROM USER_TB WHERE EMAIL= ?) AS exist;";
-//
-//
-//        $st = $pdo->prepare($query);
-//        //    $st->execute([$param,$param]);
-//        $st->execute([$email]);
-//        $st->setFetchMode(PDO::FETCH_ASSOC);
-//        $res = $st->fetchAll();
-//
-//        $st=null;$pdo = null;
-//
-//        return intval($res[0]["exist"]);
-//
-//    }

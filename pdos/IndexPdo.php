@@ -57,7 +57,6 @@ function isValidUser($email, $pw){
 
 
     $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
     $st->execute([$email,$pw]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
@@ -68,49 +67,47 @@ function isValidUser($email, $pw){
 
 }
 
+function addUser($user_name, $user_email, $user_pwd, $phone)
+{
+    $pdo = pdoSqlConnect();
+    $query = "insert into User (user_name, user_email, user_pwd, user_phone, nickname) values (?,?,?,?,?);";
 
-// CREATE
-//    function addMaintenance($message){
-//        $pdo = pdoSqlConnect();
-//        $query = "INSERT INTO MAINTENANCE (MESSAGE) VALUES (?);";
-//
-//        $st = $pdo->prepare($query);
-//        $st->execute([$message]);
-//
-//        $st = null;
-//        $pdo = null;
-//
-//    }
+    $st = $pdo->prepare($query);
+    $st->execute([$user_name, $user_email, $user_pwd, $phone, $user_name]);
+
+    $st = null;
+    $pdo = null;
+
+}
+
+function isEmailExist($user_email){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS (select * FROM User WHERE user_email = ?) as exist;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]['exist']);
+}
+function isPhoneExist($user_phone){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS (select * FROM User WHERE user_phone = ?) as exist;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_phone]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]['exist']);
+}
 
 
-// UPDATE
-//    function updateMaintenanceStatus($message, $status, $no){
-//        $pdo = pdoSqlConnect();
-//        $query = "UPDATE MAINTENANCE
-//                        SET MESSAGE = ?,
-//                            STATUS  = ?
-//                        WHERE NO = ?";
-//
-//        $st = $pdo->prepare($query);
-//        $st->execute([$message, $status, $no]);
-//        $st = null;
-//        $pdo = null;
-//    }
 
-// RETURN BOOLEAN
-//    function isRedundantEmail($email){
-//        $pdo = pdoSqlConnect();
-//        $query = "SELECT EXISTS(SELECT * FROM USER_TB WHERE EMAIL= ?) AS exist;";
-//
-//
-//        $st = $pdo->prepare($query);
-//        //    $st->execute([$param,$param]);
-//        $st->execute([$email]);
-//        $st->setFetchMode(PDO::FETCH_ASSOC);
-//        $res = $st->fetchAll();
-//
-//        $st=null;$pdo = null;
-//
-//        return intval($res[0]["exist"]);
-//
-//    }

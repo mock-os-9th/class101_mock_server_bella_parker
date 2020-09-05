@@ -1,11 +1,12 @@
 <?php
-
 require './pdos/DatabasePdo.php';
 require './pdos/IndexPdo.php';
-require './pdos/MainQueryPdo.php';
-//require './pdos/ClassPdo.php';
+require './pdos/StorePdo.php';
+require './pdos/ClassPdo.php';
+require './pdos/ClassReviewPdo.php';
+require './pdos/ClassSearchPdo.php';
+require './pdos/CommunityPdo.php';
 require './vendor/autoload.php';
-
 
 use \Monolog\Logger as Logger;
 use Monolog\Handler\StreamHandler;
@@ -20,33 +21,62 @@ ini_set('default_charset', 'utf8mb4');
 $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) {
     /* ******************   Test   ****************** */
     //store 메인페이지
-    $r->addRoute('GET', '/store', ['MainQueryController', 'getProducts']);
-    $r->addRoute('GET', '/products', ['MainQueryController', 'prodByCtg']);
-    $r->addRoute('GET', '/{product_idx}/reviews', ['MainQueryController', 'reviewByProd']);
-//    $r->addRoute('GET', '/test/{testNo}', ['IndexController', 'testDetail']);
-//    $r->addRoute('POST', '/test', ['IndexController', 'testPost']);
-//    $r->addRoute('GET', '/jwt', ['MainController', 'validateJwt']);
-//    $r->addRoute('POST', '/jwt', ['MainController', 'createJwt']);
+    $r->addRoute('GET', '/store', ['StoreController', 'getProducts']);//0
+    $r->addRoute('GET', '/products', ['StoreController', 'prodByCtg']); //0
+    $r->addRoute('GET', '/{product_idx}/reviews', ['StoreController', 'reviewByProd']); //0
+    $r->addRoute('GET', '/orders', ['StoreController', 'getOrders']); //0
+    $r->addRoute('GET', '/coupons', ['StoreController', 'getCoupons']); //0
+    $r->addRoute('GET', '/mypage', ['StoreController', 'getMypage']); //0
+    $r->addRoute('GET', '/products/{product_idx}', ['StoreController', 'getDetailProduct']); // 문의, 추천상품
+    $r->addRoute('GET', '/orders/{purchase_idx}', ['StoreController', 'getDetailOrder']);//상세주문보기
+    $r->addRoute('POST', '/order', ['StoreController', 'newOrder']); //주문하기
+    //$r->addRoute('GET', '/orders/{prod_purchase_idx}', ['StoreController', 'getDetailOrder']); 문의하기
+    //$r->addRoute('GET', '/orders/{prod_purchase_idx}', ['StoreController', 'getDetailOrder']); 문의 댓글작성
 
 
-    // db connection test
-   // $r->addRoute('GET', '/test', ['IndexController', 'test']);
+
+    $r->addRoute('GET', '/test/orders', ['IndexController', 'getOrders']);
 
     // 로그인 API
     $r->addRoute('POST', '/login', ['MainController', 'createJwt']);
 
-    // 인기, 신규, 오픈예정 클래스 (카테고리 별)
-    $r->addRoute('GET', '/class', ['MainQueryController', 'getClasses']);
+    // 회원가입
+    $r->addRoute('POST', '/signUp', ['MainController', 'addUser']);
 
+    // 인기, 신규, 오픈예정 클래스 (카테고리 별)
+    $r->addRoute('GET', '/class', ['ClassController', 'getClasses']);
+
+    // 클래스 선택화면
+    $r->addRoute('GET', '/class/{class_idx}', ['ClassController', 'getClassByClassIdx']);
 
     // 클래스 좋아요 추가 / 취소
-    $r->addRoute('PATCH', '/likes/class/{class_idx}', ['MainQueryController', 'updateClassLike']);
+    $r->addRoute('POST', '/likes/class/{class_idx}', ['ClassController', 'updateClassLike']);
 
-//    $r->addRoute('GET', '/users', 'get_all_users_handler');
-//    // {id} must be a number (\d+)
-//    $r->addRoute('GET', '/user/{id:\d+}', 'get_user_handler');
-//    // The /{title} suffix is optional
-//    $r->addRoute('GET', '/articles/{id:\d+}[/{title}]', 'get_article_handler');
+    // 클래스 리뷰 미리보기
+    $r->addRoute('GET', '/class/review/preview/{class_idx}', ['ClassReviewController', 'getReviewPreview']);
+
+    // 클래스 리뷰 전체보기
+    $r->addRoute('GET', '/class/review/{class_idx}', ['ClassReviewController', 'getAllReview']);
+
+    // 키워드로 클래스 검색
+    $r->addRoute('GET', '/search/class', ['ClassSearchController', 'searchClassByKeyword']);
+
+    // 커뮤니티 공지 조회
+    $r->addRoute('GET', '/class/{class_idx}/community/notice', ['CommunityController', 'getCommunityNotice']);
+
+    // 커뮤니티 게시글 조회
+    $r->addRoute('GET', '/class/{class_idx}/community', ['CommunityController', 'getCommunityPost']);
+
+    // 커뮤니티 게시글 작성
+    $r->addRoute('POST', '/class/{class_idx}/community', ['CommunityController', 'writeCommunityPost']);
+
+    // 커뮤니티 게시글 댓글 조회
+    $r->addRoute('GET', '/community/{post_idx}', ['CommunityController', 'getPostComment']);
+
+    // 커뮤니티 게시글 댓글 작성
+    $r->addRoute('POST', '/community/{post_idx}', ['CommunityController', 'writePostComment']);
+
+
 });
 
 // Fetch method and URI from somewhere
@@ -93,15 +123,35 @@ switch ($routeInfo[0]) {
                 $vars = $routeInfo[2];
                 require './controllers/IndexController.php';
                 break;
-            case 'MainQueryController':
+            case 'ClassController':
                 $handler = $routeInfo[1][1];
                 $vars = $routeInfo[2];
-                require './controllers/MainQueryController.php';
+                require './controllers/ClassController.php';
+                break;
+            case 'StoreController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/StoreController.php';
                 break;
             case 'MainController':
                 $handler = $routeInfo[1][1];
                 $vars = $routeInfo[2];
                 require './controllers/MainController.php';
+                break;
+            case 'ClassReviewController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/ClassReviewController.php';
+                break;
+            case 'ClassSearchController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/ClassSearchController.php';
+                break;
+            case 'CommunityController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/CommunityController.php';
                 break;
             /*case 'EventController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];

@@ -1,7 +1,7 @@
 <?php
 require 'function.php';
 
-const JWT_SECRET_KEY = "TEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEYTEST_KEY";
+const JWT_SECRET_KEY = "2d4nj21b9r20werioclrn023iowernlnv480o2n";
 
 $res = (Object)Array();
 header('Content-Type: json');
@@ -20,7 +20,6 @@ try {
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
 
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
                 $res->code = 201;
                 $res->message = "유효하지 않은 토큰입니다";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -29,7 +28,6 @@ try {
             }
 
             http_response_code(200);
-            $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "테스트 성공";
 
@@ -45,7 +43,6 @@ try {
             http_response_code(200);
 
             if(!isValidUser($req->email, $req->pw)){
-                $res->isSuccess = FALSE;
                 $res->code = 201;
                 $res->message = "이메일 또는 비밀번호를 확인해주세요";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -56,12 +53,70 @@ try {
             $jwt = getJWToken($req->email, $req->pw, JWT_SECRET_KEY);
             $res->result = new \stdClass();
             $res->result->jwt = $jwt;
-            $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "로그인 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
+        case "addUser":
+            http_response_code(200);
+
+            $name = $req->name;
+            $email = $req->email;
+            $password = $req->password;
+            $pw_chk = $req->pw_chk;
+            $phone = $req->phone;
+
+            if(isEmailExist($email)){
+                $res->code = 210;
+                $res->message = "이미 등록된 이메일입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+            if(!filter_var($email, FILTER_VALIDATE_EMAIL) ){
+                $res->code = 211;
+                $res->message = "잘못된 이메일 형식.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+            if(!is_numeric($phone) || strlen($phone) != 11){
+                $res->code = 220;
+                $res->message = "전화번호 확인 필요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+            if(isPhoneExist($phone)){
+                $res->code = 221;
+                $res->message = "이미 등록된 전화번호입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+
+            $num = preg_match('/[0-9]/u', $password);
+            $eng = preg_match('/[a-z]/u', $password);
+            $spe = preg_match("/[\!\@\#\$\%\^\&\*]/u",$password);
+
+            if(strlen($password)<9 ||strlen($password)>20 || $num == 0 || $eng == 0 || $spe == 0){
+                $res->code = 230;
+                $res->message = "비밀번호를 확인해주세요(영문, 숫자, 특수문자 혼합 9~20자리).";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+
+            if($password != $pw_chk){
+                $res->code = 231;
+                $res->message = "비밀번호가 일치하지 않습니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+            addUser($name, $email, $password, $phone); // body(request) 안에 있는 name 받아오기
+            $jwt = getJWToken($email, $password, JWT_SECRET_KEY);
+            $res->jwt = new \stdClass();
+            $res->jwt = $jwt;
+            $res->code = 100;
+            $res->message = "회원가입 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);
