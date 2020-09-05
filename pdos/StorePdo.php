@@ -441,3 +441,18 @@ function getComments($q_idx){
 
     return $res;
 }
+
+function getRecommend($user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}

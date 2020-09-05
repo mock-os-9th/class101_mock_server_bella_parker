@@ -233,7 +233,7 @@ try {
             $user_idx = getUserIdByEmail($data->email);
             $product_idx=$vars['product_idx'];
             $res->result->product = getProductInfo($product_idx,$user_idx);
-            $res->result->total = sumInfo($product_idx);
+            $res->result->total = sumInfo($vars['product_idx']);
             $res->result->details = reviewsByProd3($product_idx);
             $res->result->question=getQuestions($product_idx);
             $cnt=count($res->result->question);
