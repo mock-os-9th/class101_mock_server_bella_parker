@@ -275,32 +275,25 @@ where prod_purchase_idx = ?";
 /*function getOrderCount($user_idx){
     $pdo = pdoSqlConnect();
     $query = "select count(*) as purchase_cnt from (select distinct prod_purchase_idx,user_idx from Product_purchase) as p  where user_idx=? group by user_idx;";
-
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
-
     $st = null;
     $pdo = null;
-
     return $res;
 }
-
 function getOrderDetail($user_idx){
     $pdo = pdoSqlConnect();
     $query = "select Product_purchase_detail.pay_status,purchase.* from (select date_format(created_at,'%Y. %m. %d') as order_date,prod_purchase_idx, option_name, option_thumb,count,p_status,user_idx from Product_purchase left outer join Product_option using(option_idx)) as purchase left outer join Product_purchase_detail using(prod_purchase_idx) where user_idx=?;";
-
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
-
     $st = null;
     $pdo = null;
-
     return $res;
 }*/
 
@@ -539,18 +532,18 @@ function updateProdLike($user_idx,$prod_idx,$like_status){
 
 function getMaxProdOrderIdx(){
 
-        $pdo = pdoSqlConnect();
-        $query = "select ifnull(max(prod_purchase_idx), 0)+1 idx from Product_purchase;";
-        $st = $pdo->prepare($query);
-        //    $st->execute([$param,$param]);
-        $st->execute();
-        $st->setFetchMode(PDO::FETCH_ASSOC);
-        $res = $st->fetchAll();
+    $pdo = pdoSqlConnect();
+    $query = "select ifnull(max(prod_purchase_idx), 0)+1 idx from Product_purchase;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
 
-        $st = null;
-        $pdo = null;
+    $st = null;
+    $pdo = null;
 
-        return $res[0];
+    return $res[0];
 }
 
 function newProdcutPurchase($orderIdx, $user_idx, $option_idx, $count){
