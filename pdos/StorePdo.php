@@ -352,9 +352,9 @@ function getProductInfo($product_idx,$user_idx){
     return $res;
 }
 
-/*function getPurchase($purchase_idx){
+function getPurchaseDetail($purchase_idx){
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select payment_type, concat(format(total_origin_price,0),'원') as total_origin_price, concat(format(total_discount,0),'원')as total_discount, if(coupon_idx=0,'0원',concat(format(coupon_price,0),'원')) as coupon_price, concat(format(total_d_charge,0),'원')as total_delivery, concat(format(total_price,0),'원') as total_price from Product_purchase_detail left outer join Coupon using(coupon_idx) where prod_purchase_idx=?;";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$purchase_idx]);
@@ -367,9 +367,9 @@ function getProductInfo($product_idx,$user_idx){
     return $res;
 }
 
-function getDelivery($purchase_idx){
+function getDeliveryInfo($purchase_idx){
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select recipient,r_phone,r_address,r_memo from Product_delivery where prod_purchase_idx=?";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$purchase_idx]);
@@ -384,7 +384,7 @@ function getDelivery($purchase_idx){
 
 function getOptions($purchase_idx){
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select count,p_status, option_name,option_thumb from Product_purchase left outer join Product_option using(option_idx) where prod_purchase_idx=?;";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$purchase_idx]);
@@ -397,9 +397,9 @@ function getOptions($purchase_idx){
     return $res;
 }
 
-function getDate($purchase_idx){
+function getDateStatus($purchase_idx){
     $pdo = pdoSqlConnect();
-    $query = "select Product_purchase_detail.prod_purchase_idx, concat(date_format(Product_purchase.created_at,'%Y.%m.%d'),' 주문 상세 내역') as purchase_date from Product_purchase_detail left outer join Product_purchase using(prod_purchase_idx) where prod_purchase_idx=? group by prod_purchase_idx;";
+    $query = "select concat(date_format(Product_purchase.created_at,'%Y.%m.%d'),' 주문 상세 내역')as purchase_date,pay_status  from Product_purchase_detail left outer join Product_purchase using(prod_purchase_idx) where prod_purchase_idx=? group by prod_purchase_idx;";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$purchase_idx]);
@@ -410,7 +410,7 @@ function getDate($purchase_idx){
     $pdo = null;
 
     return $res;
-}*/
+}
 
 function getQuestions($product_idx){
     $pdo = pdoSqlConnect();
@@ -481,4 +481,198 @@ function isValidQIdx($question_idx){
     $st=null;$pdo = null;
 
     return $res[0]["exist"];
+}
+function hasProdLike($user_idx,$prod_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select * from Likes where selected_idx=? and user_idx=? and idx_type='product') AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$prod_idx,$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function addProdLike($user_idx,$prod_idx){
+    $pdo = pdoSqlConnect();
+    $like_status='Y';
+    $idx_type='product';
+    $query = "insert into Likes (selected_idx, idx_type, like_status, user_idx) values (?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$prod_idx,$idx_type,$like_status,$user_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getProdLikeStatus($user_idx,$prod_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select like_status from Likes where selected_idx=? and user_idx=? and idx_type='product'";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$prod_idx,$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['like_status'];
+}
+
+function updateProdLike($user_idx,$prod_idx,$like_status){
+    $pdo = pdoSqlConnect();
+    $query = "update Likes set like_status=? where selected_idx=? and user_idx=? and idx_type='product';";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$like_status,$prod_idx,$user_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getMaxProdOrderIdx(){
+
+        $pdo = pdoSqlConnect();
+        $query = "select ifnull(max(prod_purchase_idx), 0)+1 idx from Product_purchase;";
+        $st = $pdo->prepare($query);
+        //    $st->execute([$param,$param]);
+        $st->execute();
+        $st->setFetchMode(PDO::FETCH_ASSOC);
+        $res = $st->fetchAll();
+
+        $st = null;
+        $pdo = null;
+
+        return $res[0];
+}
+
+function newProdcutPurchase($orderIdx, $user_idx, $option_idx, $count){
+    $pdo = pdoSqlConnect();
+    $query = "insert into Product_purchase (prod_purchase_idx, option_idx, user_idx, count) values (?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$orderIdx,$option_idx ,$user_idx, $count]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getSumPrice($option_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select option_price,if(discount_rate=0,0,round(option_price*(discount_rate*0.01))) as discount from Product_option where option_idx=?";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$option_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
+}
+
+function getDeliveryCharge($option_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select delivery_charge from Product left outer join Product_option using(product_idx) where option_idx=?;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$option_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
+}
+
+function getCouponPrice($coupon_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select coupon_price from Coupon where coupon_idx=?;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$coupon_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0];
+}
+
+function newProductDelivery($orderIdx,$recipient,$r_phone,$r_address,$memo){
+    $pdo = pdoSqlConnect();
+    $query = "insert into Product_delivery (prod_purchase_idx, recipient, r_phone, r_address, r_memo) values (?,?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$orderIdx,$recipient,$r_phone,$r_address,$memo]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function newPurchaseDetail($orderIdx,$payment_type,$coupon_idx,$total_price,$total_discount,$total_delivery,$total_origin_price){
+    $pdo = pdoSqlConnect();
+    $query = "insert into Product_purchase_detail (prod_purchase_idx,payment_type,coupon_idx,total_price,total_discount,total_d_charge,total_origin_price) values (?,?,?,?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$orderIdx,$payment_type,$coupon_idx,$total_price,$total_discount,$total_delivery,$total_origin_price]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function isValidPurchaseIdx($purchase_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM Product_purchase WHERE prod_purchase_idx= ?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$purchase_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function getLikeCount($user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select count(*) as like_cnt from Likes where user_idx=?";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getLikeInfo($user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
 }

@@ -6,6 +6,7 @@ require './pdos/ClassPdo.php';
 require './pdos/ClassReviewPdo.php';
 require './pdos/ClassSearchPdo.php';
 require './pdos/CommunityPdo.php';
+require './pdos/PackagePdo.php';
 require './vendor/autoload.php';
 
 use \Monolog\Logger as Logger;
@@ -24,16 +25,17 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/store', ['StoreController', 'getProducts']);//0
     $r->addRoute('GET', '/products', ['StoreController', 'prodByCtg']); //0
     $r->addRoute('GET', '/{product_idx}/reviews', ['StoreController', 'reviewByProd']); //0
-    $r->addRoute('GET', '/orders', ['StoreController', 'getOrders']); // 클래스추가
+    $r->addRoute('GET', '/orders', ['StoreController', 'getOrders']); // 0클래스추가
     $r->addRoute('GET', '/coupons', ['StoreController', 'getCoupons']); //0
     $r->addRoute('GET', '/mypage', ['StoreController', 'getMypage']); //0
     $r->addRoute('GET', '/products/{product_idx}', ['StoreController', 'getDetailProduct']); // 0
-   // $r->addRoute('GET', '/orders/{purchase_idx}', ['StoreController', 'getDetailOrder']);//상세주문보기
-   // $r->addRoute('POST', '/order', ['StoreController', 'newOrder']); //스토어 상품 결제하기
+    $r->addRoute('GET', '/order/{prod_purchase_idx}', ['StoreController', 'getDetailOrder']);//0상세주문보기
+    $r->addRoute('POST', '/product-order', ['StoreController', 'newOrder']); //0스토어 상품 결제하기
     $r->addRoute('POST', '/{product_idx}/question', ['StoreController', 'newQuestion']); //0문의하기
     $r->addRoute('POST', '/{question_idx}/comment', ['StoreController', 'newComment']); //0문의 댓글작성
-    $r->addRoute('POST', '/help/review/{p_review_idx}', ['StoreController', 'updateReviewHelp']); //리뷰 도움됐어요/취소
-    $r->addRoute('POST', '/like/product/{product_idx}', ['StoreController', 'updateProdLike']); //스토어상품 찜하기/취소
+    //$r->addRoute('POST', '/help/review/{p_review_idx}', ['StoreController', 'updateReviewHelp']); //리뷰 도움 됨/취소
+    $r->addRoute('POST', '/like/product/{product_idx}', ['StoreController', 'updateProdLike']); //0스토어상품 찜하기/취소
+    $r->addRoute('GET', '/likes', ['StoreController', 'getLikes']); // 찜한 상품/클래스 조회
 
 
 
@@ -77,6 +79,9 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
 
     // 커뮤니티 게시글 댓글 작성
     $r->addRoute('POST', '/community/{post_idx}', ['CommunityController', 'writePostComment']);
+
+    // 패키지 구매
+    $r->addRoute('POST', '/package/purchase', ['PackageController', 'addPackagePurchase']);
 
 
 });
@@ -154,6 +159,11 @@ switch ($routeInfo[0]) {
                 $handler = $routeInfo[1][1];
                 $vars = $routeInfo[2];
                 require './controllers/CommunityController.php';
+                break;
+            case 'PackageController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/PackageController.php';
                 break;
             /*case 'EventController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];
