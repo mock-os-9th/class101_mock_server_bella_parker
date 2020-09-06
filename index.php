@@ -24,14 +24,16 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     $r->addRoute('GET', '/store', ['StoreController', 'getProducts']);//0
     $r->addRoute('GET', '/products', ['StoreController', 'prodByCtg']); //0
     $r->addRoute('GET', '/{product_idx}/reviews', ['StoreController', 'reviewByProd']); //0
-    $r->addRoute('GET', '/orders', ['StoreController', 'getOrders']); //0
+    $r->addRoute('GET', '/orders', ['StoreController', 'getOrders']); // 클래스추가
     $r->addRoute('GET', '/coupons', ['StoreController', 'getCoupons']); //0
     $r->addRoute('GET', '/mypage', ['StoreController', 'getMypage']); //0
-    $r->addRoute('GET', '/products/{product_idx}', ['StoreController', 'getDetailProduct']); // 문의, 추천상품
-    $r->addRoute('GET', '/orders/{purchase_idx}', ['StoreController', 'getDetailOrder']);//상세주문보기
-    $r->addRoute('POST', '/order', ['StoreController', 'newOrder']); //주문하기
-    //$r->addRoute('GET', '/orders/{prod_purchase_idx}', ['StoreController', 'getDetailOrder']); 문의하기
-    //$r->addRoute('GET', '/orders/{prod_purchase_idx}', ['StoreController', 'getDetailOrder']); 문의 댓글작성
+    $r->addRoute('GET', '/products/{product_idx}', ['StoreController', 'getDetailProduct']); // 0
+   // $r->addRoute('GET', '/orders/{purchase_idx}', ['StoreController', 'getDetailOrder']);//상세주문보기
+   // $r->addRoute('POST', '/order', ['StoreController', 'newOrder']); //스토어 상품 결제하기
+    $r->addRoute('POST', '/{product_idx}/question', ['StoreController', 'newQuestion']); //0문의하기
+    $r->addRoute('POST', '/{question_idx}/comment', ['StoreController', 'newComment']); //0문의 댓글작성
+    $r->addRoute('POST', '/help/review/{p_review_idx}', ['StoreController', 'updateReviewHelp']); //리뷰 도움됐어요/취소
+    $r->addRoute('POST', '/like/product/{product_idx}', ['StoreController', 'updateProdLike']); //스토어상품 찜하기/취소
 
 
 
