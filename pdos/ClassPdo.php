@@ -106,7 +106,7 @@ function getNotOpenedClass($user_idx,$ctg_type)
        not_open.arrival,
        if(TIMESTAMPDIFF(DAY, now(), Class.open_date) < 3, '응원 마감 임박 집계 진행 중',
           concat('응원 마감까지 ', TIMESTAMPDIFF(DAY, now(), Class.open_date), '일 남음')) as due,
-       like_status
+       ifnull(like_status, 'N') as like_status
 from ((select no_type.*, Class_category.ctg_type
       from (select class_total_info.class_idx,
                    class_name,
@@ -163,7 +163,7 @@ function getUpdatedClass($user_idx,$ctg_type)
        class_total_info.class_thumb,
        like_cnt,
        satisfaction,
-       like_status,
+       ifnull(like_status, 'N') as like_status,
        update_type,
        case
            when timestampdiff(hour, Class.updated_at, now()) < 1

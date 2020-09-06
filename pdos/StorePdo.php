@@ -442,17 +442,43 @@ function getComments($q_idx){
     return $res;
 }
 
-function getRecommend($user_idx){
+function newQuestion($user_idx, $product_idx, $contents, $photo)
+{
     $pdo = pdoSqlConnect();
-    $query = "";
+
+    $query = "insert into Product_question (user_idx, product_idx, q_contents, q_photos) values (?,?,?,?);";
+
     $st = $pdo->prepare($query);
-    //    $st->execute([$param,$param]);
-    $st->execute([$user_idx]);
-    $st->setFetchMode(PDO::FETCH_ASSOC);
-    $res = $st->fetchAll();
+    $st->execute([$user_idx, $product_idx, $contents, $photo]);
 
     $st = null;
     $pdo = null;
+}
 
-    return $res;
+function newComment($user_idx, $question_idx, $contents, $photo){
+    $pdo = pdoSqlConnect();
+
+    $query = "insert into Question_comment (user_idx, question_idx, comment, c_photo) values (?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_idx, $question_idx, $contents, $photo]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function isValidQIdx($question_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM Product_question WHERE question_idx= ?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$question_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
 }
