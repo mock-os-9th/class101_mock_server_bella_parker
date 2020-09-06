@@ -33,7 +33,7 @@ try {
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                //$res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -41,15 +41,15 @@ try {
                 return;
             }
             if(!isValidProdIdx($vars['product_idx'])){
-                $res->isSuccess = FALSE;
-                $res->code = 200;
+                // $res->isSuccess = FALSE;
+                $res->code = 201;
                 $res->message = "유효한 인덱스가 아닙니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 break;
             }
             if(!hasReview($vars['product_idx'])){
-                $res->isSuccess = FALSE;
-                $res->code = 201;
+                // $res->isSuccess = FALSE;
+                $res->code = 202;
                 $res->message = "첫번째 리뷰를 작성하세요!";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 break;
@@ -57,7 +57,7 @@ try {
 
             $res->result->general = sumInfo($vars['product_idx']);
             $res->result->detail = reviewsByProd($vars['product_idx']);
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -92,35 +92,41 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
-        /*case "getDetailOrder":
+        case "getDetailOrder":
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
             }
-            $purchase_idx=$vars['purchase_idx'];
-            $idx_type=$_GET['type']; //product인지 package인지
-            $res->result->date=getDate($purchase_idx);
-            $res->result->purchase = getPurchase($purchase_idx);
-            $res->result->delivery = getDelivery($purchase_idx);
+            $purchase_idx=$vars['prod_purchase_idx'];
+            if(!isValidPurchaseIdx($purchase_idx)){
+                $res->code = 200;
+                $res->message = "유효한 인덱스가 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+
+            $res->result->date=getDateStatus($purchase_idx);
+            $res->result->purchase = getPurchaseDetail($purchase_idx);
+            $res->result->delivery = getDeliveryInfo($purchase_idx);
             $res->result->options = getOptions($purchase_idx);
 
-            $res->isSuccess = TRUE;
+            //$res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
-            break;*/
+            break;
 
         case "getProducts":
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -134,17 +140,17 @@ try {
             $res->result->DIY5= getDIY5($user_idx);
             $res->result->art5 = getArt5($user_idx);
             $res->result->new_prod = getNewprod($user_idx);
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
+            echo json_encode($res,JSON_NUMERIC_CHECK);
             break;
 
         case "getCoupons":
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -154,7 +160,7 @@ try {
             $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
             $user_idx = getUserIdByEmail($data->email);
             if(!isValidUserIdx($user_idx)){
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 200;
                 $res->message = "유효하지 않은 사용자입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -162,7 +168,7 @@ try {
             }
             $res->result->total_cnt = getCouponCount($user_idx);
             $res->result->coupons = getCouponDetail($user_idx);
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -172,7 +178,7 @@ try {
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -181,7 +187,7 @@ try {
             }
             $ctg_type = $_GET['type'];
             if(!($ctg_type == "EASY DIY" || $ctg_type == "굿즈" || $ctg_type == "미술재료" || $ctg_type == "공예재료" || $ctg_type == "디지털기기/ACC" || $ctg_type == "악기/음악" || $ctg_type == "헬스/뷰티/ACC" || $ctg_type == "인테리어/소품" || $ctg_type == "푸드/키친" || $ctg_type == "문구/도서" )){
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 200;
                 $res->message = "잘못된 카테고리입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -191,17 +197,17 @@ try {
             $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
             $user_idx = getUserIdByEmail($data->email);
             $res->result = prodByCategory($ctg_type,$user_idx);
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
+            echo json_encode($res,JSON_NUMERIC_CHECK);
             break;
 
         case "getMypage":
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -212,7 +218,7 @@ try {
             $user_idx = getUserIdByEmail($data->email);
             $res->result->mypage = getMypage($user_idx);
             $res->result->myclass= getMyclass($user_idx);
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -222,9 +228,17 @@ try {
             http_response_code(200);
             $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
             if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
-                $res->isSuccess = FALSE;
+                // $res->isSuccess = FALSE;
                 $res->code = 220;
                 $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            if (!isValidProdIdx($vars['product_idx'])) {
+                // $res->isSuccess = FALSE;
+                $res->code = 201;
+                $res->message = "유효한 인덱스가 아닙니다.";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
                 addErrorLogs($errorLogs, $res, $req);
                 return;
@@ -236,16 +250,31 @@ try {
             $res->result->total = sumInfo($vars['product_idx']);
             $res->result->details = reviewsByProd3($product_idx);
             $res->result->question=getQuestions($product_idx);
+            if(empty($res->result->total)){
+                $res->result->total='첫번째 리뷰를 작성해보세요!';
+                $res->result->details='';
+            }
+            if(empty($res->result->question)){
+                $res->result->question='문의 내역이 없습니다.';
+                // $res->isSuccess = TRUE;
+                $res->code = 100;
+                $res->message = "조회 성공";
+                echo json_encode($res,JSON_NUMERIC_CHECK);
+                break;
+            }
             $cnt=count($res->result->question);
             for($i=0;$i<$cnt;$i++){
                 $q_idx=$res->result->question[$i]['question_idx'];
                 $res->result->question[$i]['comments']=getComments($q_idx);
+                if(empty($res->result->question[$i]['comments'])){
+                    $res->result->question[$i]['comments']='';
+                }
             }
 
-            $res->isSuccess = TRUE;
+            // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";
-            echo json_encode($res, JSON_NUMERIC_CHECK);
+            echo json_encode($res,JSON_NUMERIC_CHECK);
             break;
 
         case "newQuestion":
@@ -330,6 +359,163 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
+
+
+        case "updateProdLike":
+            http_response_code(200);
+
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+            $prod_idx = $vars['product_idx'];
+
+            if(!isValidProdIdx($prod_idx)){
+                $res->code = 201;
+                $res->message = "유효한 인덱스가 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            if(!hasProdLike($user_idx,$prod_idx)) {
+                addProdLike($user_idx, $prod_idx);
+                $code = 100;
+                $message = "찜 추가";
+            }
+            else{
+                $like_status = getProdLikeStatus($user_idx,$prod_idx);
+                if($like_status == 'N'){
+                    $like_status='Y';
+                    updateProdLike($user_idx,$prod_idx,$like_status);
+                    $code = 100;
+                    $message = "찜 추가";
+                }
+                else if($like_status == 'Y'){
+                    $like_status='N';
+                    updateProdLike($user_idx,$prod_idx,$like_status);
+                    $code = 101;
+                    $message = "찜 취소";
+                }
+            }
+            $res->code = $code;
+            $res->message = $message;
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+        case "newOrder":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                // $res->isSuccess = FALSE;
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+
+            $orderIdx=getMaxProdOrderIdx()['idx'];
+            //echo $orderIdx;
+            $orders=$req->orders;
+            //echo json_encode($orders[0], JSON_NUMERIC_CHECK);
+            $option_count=count($orders);
+
+            //echo $option_count;
+            for($i=0;$i<$option_count;$i++){
+                $option_idx = $orders[$i]->option_idx;
+                $count = $orders[$i]->count;
+
+                newProdcutPurchase($orderIdx, $user_idx, $option_idx, $count);
+            }
+
+            $total_price="";
+            $total_discount="";
+            $total_delivery="";
+            $total_origin_price="";
+            for($i=0;$i<$option_count;$i++){
+                $option_idx=$orders[$i]->option_idx;
+                $total_origin_price+=getSumPrice($option_idx)['option_price']*$orders[$i]->count;
+                $total_discount+=getSumPrice($option_idx)['discount']*$orders[$i]->count;
+                $total_delivery+=getDeliveryCharge($option_idx)['delivery_charge'];
+
+
+            }
+
+            $total_price=$total_origin_price-$total_discount+$total_delivery;
+
+
+
+
+
+
+
+            //배송정보
+            $recipient=$req->recipient;
+            $r_phone=$req->r_phone;
+            $r_address=$req->r_address;
+            $memo=$req->memo;
+
+            newProductDelivery($orderIdx,$recipient,$r_phone,$r_address,$memo);
+
+            //detail 결제정보
+            $payment_type=$req->payment_type;
+            $coupon_idx=$req->coupon_idx;
+            if($coupon_idx!=null){
+                $coupon_discount=getCouponPrice($coupon_idx)['coupon_price'];
+                $total_price=$total_price-$coupon_discount;
+            }
+            else{
+                $coupon_idx=0;
+            }
+
+
+
+
+            newPurchaseDetail($orderIdx,$payment_type,$coupon_idx,$total_price,$total_discount,$total_delivery,$total_origin_price);
+
+            // $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "결제 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+        case "getLikes":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                // $res->isSuccess = FALSE;
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+            if(!isValidUserIdx($user_idx)){
+                // $res->isSuccess = FALSE;
+                $res->code = 200;
+                $res->message = "유효하지 않은 사용자입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
+            $res->result->total_cnt = getLikeCount($user_idx);
+            //$res->result->likes = getLikeInfo($user_idx);
+            // $res->isSuccess = TRUE;
+            $res->code = 100;
+            $res->message = "조회 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

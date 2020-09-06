@@ -74,11 +74,11 @@ function getTodayByTimeStamp()
     return date("Y-m-d H:i:s");
 }
 
-function getJWToken($id, $pw, $secretKey)
+function getJWToken($email, $pw, $secretKey)
 {
     $data = array(
         'date' => (string)getTodayByTimeStamp(),
-        'id' => (string)$id,
+        'email' => (string)$email,
         'pw' => (string)$pw
     );
 
@@ -102,6 +102,19 @@ function getDataByJWToken($jwt, $secretKey)
 //    print_r($decoded);
     return $decoded;
 
+}
+
+function getUserIdByEmail($email){
+    $pdo = pdoSqlConnect();
+    $query = "select user_idx from User where user_email = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+    return intval($res[0]['user_idx']);
 }
 
 
