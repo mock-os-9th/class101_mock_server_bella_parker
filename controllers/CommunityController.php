@@ -83,6 +83,34 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
+        // 커뮤니티 특정 게시글 조회
+        case "getCommunityPostDetail":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $post_idx = $vars['post_idx'];
+            if(!isValidPostIdx($post_idx)){
+                $res->code = 201;
+                $res->message = "유효한 인덱스가 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $res->result->post = getCommunityPostDetail($post_idx);
+            $res->result->comment = getPostComment($post_idx);
+            $res->code = 100;
+            $res->message = "조회 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
         // 커뮤니티 게시글 작성
         case "writeCommunityPost":
             http_response_code(200);

@@ -79,7 +79,13 @@ try {
 
             $order_info = getOrderInfo($user_idx);
             $order_cnt = count($order_info);
-
+            if(empty($order_info)){
+                $res->result->order_info ="주문 목록이 없습니다.";
+                $res->code = 100;
+                $res->message = "조회 성공";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                break;
+            }
             for($i = 0; $i<$order_cnt; $i++){
                 $prod_purchase_idx = $order_info[$i]['prod_purchase_idx'];
                 $order_detail = orderDetail($prod_purchase_idx);
@@ -510,7 +516,7 @@ try {
                 break;
             }
             $res->result->total_cnt = getLikeCount($user_idx);
-            //$res->result->likes = getLikeInfo($user_idx);
+            $res->result->likes = getLikeInfo($user_idx);
             // $res->isSuccess = TRUE;
             $res->code = 100;
             $res->message = "조회 성공";

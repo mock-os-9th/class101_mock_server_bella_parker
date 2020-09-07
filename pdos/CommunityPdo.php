@@ -45,6 +45,39 @@ order by Community_post.created_at desc
     return $res;
 }
 
+// 커뮤니티 특정 게시글 조회
+function getCommunityPostDetail($post_idx)
+{
+    $pdo = pdoSqlConnect();
+
+    $query = "select post_idx,
+       nickname,
+       profile_img,
+       date_format(Community_post.created_at, '%Y. %m. %d') as created_at,
+       post_contents,
+       reply_cnt,
+       Class.class_idx,
+       class_ctg,
+       user_name,
+       class_thumb,
+       class_name
+from ((Community_post left outer join User using (user_idx))
+    left outer join (select post_idx, count(post_idx) as reply_cnt
+                     from Community_comment
+                     group by post_idx) as t using (post_idx))
+         left outer join Class using (class_idx)
+where post_idx = ?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
 // 커뮤니티 게시글 작성
 function writeCommunityPost($user_idx, $class_idx, $post_contents, $post_photo)
 {
@@ -92,6 +125,8 @@ function writePostComment($user_idx, $post_idx, $comment_contents, $comment_phot
     $pdo = null;
 }
 
+
+
 // post_idx 유효성 검사
 function isValidPostIdx($post_idx){
     $pdo = pdoSqlConnect();
@@ -107,8 +142,6 @@ function isValidPostIdx($post_idx){
 
     return $res[0]["exist"];
 }
-
-
 function getClassIdxByPostIdx($post_idx){
     $pdo = pdoSqlConnect();
 
@@ -141,7 +174,6 @@ where class_idx = ?;";
 
     return $res[0]['user_idx'];
 }
-
 function updateClassInfo($class_idx, $update_type){
     $pdo = pdoSqlConnect();
 

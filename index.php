@@ -7,6 +7,7 @@ require './pdos/ClassReviewPdo.php';
 require './pdos/ClassSearchPdo.php';
 require './pdos/CommunityPdo.php';
 require './pdos/PackagePdo.php';
+require './pdos/EventPdo.php';
 require './vendor/autoload.php';
 
 use \Monolog\Logger as Logger;
@@ -74,8 +75,8 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     // 커뮤니티 게시글 작성
     $r->addRoute('POST', '/class/{class_idx}/community', ['CommunityController', 'writeCommunityPost']);
 
-    // 커뮤니티 게시글 댓글 조회
-    $r->addRoute('GET', '/community/{post_idx}', ['CommunityController', 'getPostComment']);
+    // 커뮤니티 특정 게시글 조회
+    $r->addRoute('GET', '/community/{post_idx}', ['CommunityController', 'getCommunityPostDetail']);
 
     // 커뮤니티 게시글 댓글 작성
     $r->addRoute('POST', '/community/{post_idx}', ['CommunityController', 'writePostComment']);
@@ -83,7 +84,14 @@ $dispatcher = FastRoute\simpleDispatcher(function (FastRoute\RouteCollector $r) 
     // 패키지 구매
     $r->addRoute('POST', '/package/purchase', ['PackageController', 'addPackagePurchase']);
 
+    // 패키지 조회
+    $r->addRoute('GET', '/class/{class_idx}/package', ['PackageController', 'getPackageInfo']);
 
+    // 패키지 구매내역
+    $r->addRoute('GET', '/package/purchase', ['PackageController', 'getPackagePurchaseInfo']);
+
+    // 이벤트 조회
+    $r->addRoute('GET', '/event', ['EventController', 'getEvents']);
 });
 
 // Fetch method and URI from somewhere
@@ -164,6 +172,11 @@ switch ($routeInfo[0]) {
                 $handler = $routeInfo[1][1];
                 $vars = $routeInfo[2];
                 require './controllers/PackageController.php';
+                break;
+            case 'EventController':
+                $handler = $routeInfo[1][1];
+                $vars = $routeInfo[2];
+                require './controllers/EventController.php';
                 break;
             /*case 'EventController':
                 $handler = $routeInfo[1][1]; $vars = $routeInfo[2];

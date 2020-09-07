@@ -642,7 +642,7 @@ function isValidPurchaseIdx($purchase_idx){
 
 function getLikeCount($user_idx){
     $pdo = pdoSqlConnect();
-    $query = "select count(*) as like_cnt from Likes where user_idx=?";
+    $query = "select count(*) as like_cnt from Likes where user_idx=? and like_status='Y';";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$user_idx]);
@@ -657,10 +657,11 @@ function getLikeCount($user_idx){
 
 function getLikeInfo($user_idx){
     $pdo = pdoSqlConnect();
-    $query = "";
+    $query = "select distinct class_idx as selected_idx,class_name,user_name,class_thumb,like_cnt,like_status,satisfaction, is_available from Likes left outer join class_total_info on class_idx=selected_idx where idx_type='class' and like_status='Y' and user_idx=?
+union (select distinct product_idx, product_name,seller,product_thumb,likes_cnt,like_status,'','' from Likes as prod left outer join prod_total_info on product_idx=selected_idx where idx_type='product' and like_status='Y' and user_idx=?)";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
-    $st->execute([$user_idx]);
+    $st->execute([$user_idx,$user_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
