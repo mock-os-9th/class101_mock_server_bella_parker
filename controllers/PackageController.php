@@ -80,14 +80,18 @@ try {
                 return;
             }
 
+
+            // package_purchase 테이블에 추가
             addPackagePurchase($package_idx, $user_idx, $user_phone, $coupon_idx, $payment_type, $discount, $delivery_price, $origin_price, $now);
 
             $pkg_purchase_idx = getPackagePurchaseIdx($user_idx, $now);
             $components = getComponentIdxByPackageIdx($package_idx);
             $components_cnt = count($components);
 
+            // component 개수만큼 반복
             for($i = 0; $i<$components_cnt; $i++){
                 $component_idx = $components[$i]['component_idx'];
+                // package_delivery 테이블에 추가
                 addPackageDelivery($pkg_purchase_idx, $component_idx, $address, $user_request);
             }
             $res->code = 100;
@@ -116,18 +120,22 @@ try {
                 return;
             }
 
-            // class_idx 별 패키지 정보 조회
+            // class_idx에 해당하는 패키지 정보 조회
             $package = getPackageInfo($class_idx);
             $package_cnt = count($package);
 
+
+            // package 개수만큼 반복
             for($i = 0; $i<$package_cnt; $i++){
-                // package_idx 별 구성품 조회
                 $package_idx = $package[$i]['package_idx'];
-                $component = getComponentInfo($package_idx);
-                $component_cnt = count($component);
 
                 // i번째 패키지의 원가 조회
                 $origin_price = $package[$i]['origin_price'];
+
+                // package_idx에 해당하는 구성품 조회
+                $component = getComponentInfo($package_idx);
+                $component_cnt = count($component);
+
 
                 // i번째 패키지 구성품의 할인가격 합계 조회
                 $total_discount_price = 0;
@@ -167,6 +175,7 @@ try {
             $purchase_info = getPackagePurchaseInfo($user_idx);
             $purchase_cnt = count($purchase_info);
 
+            //
             for($i = 0; $i<$purchase_cnt; $i++){
                 $pkg_purchase_idx = $purchase_info[$i]['pkg_purchase_idx'];
                 $component_delivery_info = getComponentDeliveryInfo($pkg_purchase_idx);

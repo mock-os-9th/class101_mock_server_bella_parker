@@ -44,12 +44,43 @@ try {
             $result['top10_class'] = getTopClass($user_idx,$ctg_type);
             $result['new_class'] = getNewClass($user_idx,$ctg_type);
             $result['not_opened_class'] = getNotOpenedClass($user_idx,$ctg_type);
-            $result['updated_class'] = getUpdatedClass($user_idx, $ctg_type);
+
             $res->result = $result;
             $res->code = 100;
             $res->message = "조회 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        case "getUpdatedClasses":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $ctg_type = $_GET['type'];
+            if(!($ctg_type == "전체" || $ctg_type == "크리에이티브" || $ctg_type == "커리어" || $ctg_type == "머니")){
+                $res->code = 201;
+                $res->message = "잘못된 카테고리입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+            $page_num = $vars['page_num'];
+
+
+            $res->result = getUpdatedClass($user_idx, $ctg_type, ($page_num-1)*2);
+            $res->code = 100;
+            $res->message = "조회 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
 
         case "getClassByClassIdx":
             http_response_code(200);
@@ -122,6 +153,8 @@ try {
                     $message = "좋아요 취소";
                 }
             }
+            $res->result['like_cnt'] = getClassLikeCnt($class_idx);
+            $res->result['like_status'] = getClassLikeStatus($user_idx, $class_idx);
             $res->code = $code;
             $res->message = $message;
             echo json_encode($res, JSON_NUMERIC_CHECK);

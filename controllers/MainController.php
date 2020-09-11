@@ -16,10 +16,11 @@ try {
          */
         case "validateJwt":
             // jwt 유효성 검사
+            //$jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+            $jwt = $req->jwt;
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
 
-            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
-
-            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+            if (!(isValidHeader($jwt, JWT_SECRET_KEY) && $data->date == getCurrentLogin($data->email))) {
                 $res->code = 201;
                 $res->message = "유효하지 않은 토큰입니다";
                 echo json_encode($res, JSON_NUMERIC_CHECK);
@@ -27,9 +28,18 @@ try {
                 return;
             }
 
+            if (isJWTExpired($data->email))
+            {
+                $res->code = 202;
+                $res->message = "로그인이 만료됐습니다. 다시 로그인해주세요";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
             http_response_code(200);
             $res->code = 100;
-            $res->message = "테스트 성공";
+            $res->message = "유효한 토큰입니다.";
 
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
@@ -51,6 +61,11 @@ try {
 
             //페이로드에 맞게 다시 설정 요함
             $jwt = getJWToken($req->email, $req->pw, JWT_SECRET_KEY);
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $email = $data->email;
+            $date = $data->date;
+            updateCurrentLogin($email, $date);
+
             $res->result = new \stdClass();
             $res->result->jwt = $jwt;
             $res->code = 100;
@@ -111,12 +126,33 @@ try {
             }
             addUser($name, $email, $password, $phone); // body(request) 안에 있는 name 받아오기
             $jwt = getJWToken($email, $password, JWT_SECRET_KEY);
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $email = $data->email;
+            $date = $data->date;
+            updateCurrentLogin($email, $date);
             $res->jwt = new \stdClass();
             $res->jwt = $jwt;
             $res->code = 100;
             $res->message = "회원가입 성공";
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
+
+        case "sendFCM":
+            // jwt 유효성 검사
+            http_response_code(200);
+            $key = "AAAAW-KJdQQ:APA91bHVR7eggLnuFU9_wHa-BxnWTv1VXzFVuYZ2TYyC8Y2eb6ZRArPgqQLQJK2Nlid9EIfdPqq1budDKpORxf6UfKZYGzk7GULqau88ycaI448EBQNdytdh1ly3MOx36MJeIgi4uy6K";
+            $fcmToken = getFcmFromUser();
+            $data = $req->data;
+            $notification = $req->notification;
+            for($i = 0; $i<count($fcmToken); $i++){
+                sendFcm($fcmToken[$i]['fcm_token'], $data, $notification, $key);
+            }
+
+            $res->code = 100;
+            $res->message = "push 성공";
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

@@ -22,38 +22,84 @@ function isValidHeader($jwt, $key)
     try {
         $data = getDataByJWToken($jwt, $key);
         //로그인 함수 직접 구현 요함
-        return isValidUser($data->email, $data->pw);
+        if(isset($data->id)){
+            return isValidKakaoUser($data->id,$data->email);
+        }
+        else{
+            return isValidUser($data->email, $data->pw);}
     } catch (\Exception $e) {
         return false;
     }
 }
 
-function sendFcm($fcmToken, $data, $key, $deviceType)
+function getCurrentLogin($email){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT current_login
+from User
+where user_email = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+    return $res[0]['current_login'];
+}
+
+function isJWTExpired($email){
+    $pdo = pdoSqlConnect();
+    $query = "select timestampdiff(day, now(), current_login) > 7 as expire
+from User
+where user_email = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$email]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+    return $res[0]['expire'];
+}
+
+function getFcmFromUser(){
+    $pdo = pdoSqlConnect();
+    $query = "select fcm_token
+from User
+where fcm_token is not null";
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+    return $res;
+}
+
+function sendFcm($fcmToken, $data, $notification, $key)
 {
     $url = 'https://fcm.googleapis.com/fcm/send';
 
+    // header에 넣을 정보
     $headers = array(
         'Authorization: key=' . $key,
         'Content-Type: application/json'
     );
 
-    $fields['data'] = $data;
-
-    if ($deviceType == 'IOS') {
-        $notification['title'] = $data['title'];
-        $notification['body'] = $data['body'];
-        $notification['sound'] = 'default';
-        $fields['notification'] = $notification;
-    }
-
+    // body에 넣을 정보
     $fields['to'] = $fcmToken;
-    $fields['content_available'] = true;
     $fields['priority'] = "high";
+    $fields['data'] = $data;
+    $fields['notification'] = $notification;
+    $fields['content_available'] = true;
+
 
     $fields = json_encode($fields, JSON_NUMERIC_CHECK);
 
-//    echo $fields;
+    // echo $fields;
 
+    // 전송
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_POST, true);
@@ -61,6 +107,7 @@ function sendFcm($fcmToken, $data, $key, $deviceType)
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POSTFIELDS, $fields);
 
+    // 실행
     $result = curl_exec($ch);
     if ($result === FALSE) {
         //die('FCM Send Error: ' . curl_error($ch));
@@ -91,6 +138,18 @@ function getJWToken($email, $pw, $secretKey)
 //    print_r($decoded);
 }
 
+function getKakaoJWToken($email, $id, $secretKey){
+    $data = array(
+        'date' => (string)getTodayByTimeStamp(),
+        'email' => (string)$email,
+        'id' => (string)$id
+    );
+
+//    echo json_encode($data);
+
+    return $jwt = JWT::encode($data, $secretKey);
+}
+
 function getDataByJWToken($jwt, $secretKey)
 {
     try{
@@ -104,6 +163,8 @@ function getDataByJWToken($jwt, $secretKey)
 
 }
 
+
+
 function getUserIdByEmail($email){
     $pdo = pdoSqlConnect();
     $query = "select user_idx from User where user_email = ?";
@@ -115,6 +176,16 @@ function getUserIdByEmail($email){
     $st = null;
     $pdo = null;
     return intval($res[0]['user_idx']);
+}
+
+function updateCurrentLogin($email, $date){
+    $pdo = pdoSqlConnect();
+    $query = "update User set current_login = ? where user_email = ?";
+    $st = $pdo->prepare($query);
+    $st->execute([$date, $email]);
+
+    $st = null;
+    $pdo = null;
 }
 
 

@@ -73,3 +73,19 @@ where end_date < now();";
 
     return $res;
 }
+
+// 광고 가져오기
+function getAd(){
+    $pdo = pdoSqlConnect();
+    $query = "select *
+    from Advertisement";
+
+    $st = $pdo->prepare($query);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}

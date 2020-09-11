@@ -137,7 +137,7 @@ and user_idx = ?) as t using (class_idx)
     return $res;
 }
 
-function getUpdatedClass($user_idx,$ctg_type)
+function getUpdatedClass($user_idx,$ctg_type, $page)
 {
     $pdo = pdoSqlConnect();
     $where_clause="";
@@ -177,11 +177,13 @@ from (test.class_total_info
          left outer join (Class left outer join Class_category using (class_ctg))using (class_idx)) left outer join (select selected_idx as class_idx, user_idx, like_status
                           from test.Likes
                           where idx_type = 'class'
-                            and user_idx = ?) as t using (class_idx)
-where timestampdiff(day, Class.updated_at, now()) < 7".$where_clause."order by Class.updated_at desc;";
+                            and user_idx = :user_idx) as t using (class_idx)
+where timestampdiff(day, Class.updated_at, now()) < 7".$where_clause."order by Class.updated_at desc limit :page, 2;";
 
     $st = $pdo->prepare($query);
-    $st->execute([$user_idx]);
+    $st->bindParam(':user_idx', $user_idx, PDO::PARAM_INT);
+    $st->bindParam(':page', $page, PDO::PARAM_INT);
+    $st->execute();
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
     $st = null;
@@ -218,6 +220,24 @@ function addClassLike($user_idx, $selected_idx)
     $st = null;
     $pdo = null;
 }
+// 클래스 좋아요 개수
+function getClassLikeCnt($class_idx)
+{
+    $pdo = pdoSqlConnect();
+    $query="select count(*) as like_cnt
+from Likes
+where like_status = 'Y' and selected_idx = ? and idx_type = 'class'";
+    $st = $pdo->prepare($query);
+    $st->execute([$class_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return intval($res[0]['like_cnt']);
+}
+
 
 // 클래스 좋아요 상태
 function getClassLikeStatus($user_idx, $selected_idx)

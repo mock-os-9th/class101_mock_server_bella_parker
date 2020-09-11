@@ -199,6 +199,83 @@ try {
             echo json_encode($res, JSON_NUMERIC_CHECK);
             break;
 
+        // 커뮤니티 게시글 삭제
+        case "deletePost":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $post_idx = $vars['post_idx'];
+
+            if(!isValidPostIdx($post_idx)){
+                $res->code = 201;
+                $res->message = "유효한 인덱스가 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+            $writer_idx = getPostWriterIdx($post_idx);
+            if($writer_idx != $user_idx){
+                $res->code = 202;
+                $res->message = "본인이 작성한 글이 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            deletePost($post_idx);
+            $res->code = 100;
+            $res->message = "게시글 삭제 성공";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
+        // 커뮤니티 댓글 삭제
+        case "deleteComment":
+            http_response_code(200);
+            $jwt = $_SERVER["HTTP_X_ACCESS_TOKEN"];
+
+            if (!isValidHeader($jwt, JWT_SECRET_KEY)) {
+                $res->code = 220;
+                $res->message = "로그인이 필요한 서비스입니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+
+            $comment_idx = $vars['comment_idx'];
+            if(!isValidCommentIdx($comment_idx)){
+                $res->code = 201;
+                $res->message = "유효한 인덱스가 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            $data = getDataByJWToken($jwt, JWT_SECRET_KEY);
+            $user_idx = getUserIdByEmail($data->email);
+            $writer_idx = getCommentWriterIdx($comment_idx);
+            if($writer_idx != $user_idx){
+                $res->code = 202;
+                $res->message = "본인이 작성한 글이 아닙니다.";
+                echo json_encode($res, JSON_NUMERIC_CHECK);
+                addErrorLogs($errorLogs, $res, $req);
+                return;
+            }
+            deleteComment($comment_idx);
+            $res->code = 100;
+            $res->message = "댓글 삭제 성공";
+
+            echo json_encode($res, JSON_NUMERIC_CHECK);
+            break;
+
     }
 } catch (\Exception $e) {
     return getSQLErrorException($errorLogs, $e, $req);

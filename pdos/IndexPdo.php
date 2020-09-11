@@ -70,10 +70,11 @@ function isValidUser($email, $pw){
 function addUser($user_name, $user_email, $user_pwd, $phone)
 {
     $pdo = pdoSqlConnect();
-    $query = "insert into User (user_name, user_email, user_pwd, user_phone, nickname) values (?,?,?,?,?);";
+    $login_type='local';
+    $query = "insert into User (user_name, user_email, user_pwd, user_phone, nickname,login_type) values (?,?,?,?,?,?);";
 
     $st = $pdo->prepare($query);
-    $st->execute([$user_name, $user_email, $user_pwd, $phone, $user_name]);
+    $st->execute([$user_name, $user_email, $user_pwd, $phone, $user_name,$login_type]);
 
     $st = null;
     $pdo = null;

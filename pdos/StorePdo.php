@@ -84,10 +84,23 @@ left outer join (select selected_idx,like_status from Likes where idx_type='prod
     return $res;
 }
 
-function prodByCategory($ctg_type,$user_idx){
+function prodByCategory($ctg_type,$user_idx,$ctg_option){
     $pdo = pdoSqlConnect();
-    $query = "select prod_total_info.*, if(like_status is null,'N',like_status) as like_status from prod_total_info left outer join (select selected_idx,like_status from Likes where idx_type='product' and user_idx=?) as likes
-on product_idx=selected_idx where product_ctg=?";
+    if($ctg_option==0){
+        $query = "select prod_total_info.*, if(like_status is null,'N',like_status) as like_status from prod_total_info left outer join (select selected_idx,like_status from Likes where idx_type='product' and user_idx=?) as likes
+on product_idx=selected_idx where product_ctg=? order by likes_cnt desc";
+    }
+    else if($ctg_option==1){
+        $query = "select info.*,created_at from (select prod_total_info.*, if(like_status is null,'N',like_status) as like_status from prod_total_info left outer join (select selected_idx,like_status from Likes where idx_type='product' and user_idx=?) as likes
+on product_idx=selected_idx where product_ctg=? ) as info left outer join Product using(product_idx) order by created_at desc;";
+    }
+    else if($ctg_option==2){
+        $query = "select no_star.product_idx, product_name, product_thumb, product_ctg, seller, origin_price, dis, dis_price, installment, d_charge, likes_cnt, like_status from (select prod.*, if(star is null,0,star) as avg_star from (select prod_total_info.*, if(like_status is null,'N',like_status) as like_status from prod_total_info left outer join (select selected_idx,like_status from Likes where idx_type='product' and user_idx=?) as likes
+on product_idx=selected_idx) as prod left outer join (select product_idx, round(avg(star),1) as star from (select distinct Product_purchase.prod_purchase_idx,Product_option.product_idx from Product_purchase left outer join Product_option using(option_idx)) as r
+    left outer join (select Product_review.prod_purchase_idx, Product_review.star ,(if(photo is null,0,group_concat(photo separator ','))) as photos from Product_review left outer join Review_photos using(p_review_idx) group by p_review_idx) as p
+using(prod_purchase_idx)group by product_idx) as stars using(product_idx) where product_ctg=? order by avg_star desc) as no_star;";
+    }
+
 
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
@@ -299,9 +312,24 @@ function getOrderDetail($user_idx){
 
 function getMypage($user_idx){
     $pdo = pdoSqlConnect();
-    $query = "select ucl.user_idx, nickname, user_email, profile_img, point, coupon_cnt, like_cnt, if(orders.purchase_cnt is null,'주문내역 0개',orders.purchase_cnt) as order_cnt from (select uc.user_idx, nickname, user_email, profile_img, point, coupon_cnt, if(likes.like_cnt is null,'찜 0개',likes.like_cnt) as like_cnt from(select user.user_idx, nickname, user_email, profile_img, point,if(coupon.coupon_cnt is null,'쿠폰 0개',coupon.coupon_cnt) as coupon_cnt from (select user_idx,nickname,user_email, profile_img,point from User)as user left outer join (select user_idx,concat('쿠폰 ',count(*),'개') as coupon_cnt from Coupon group by user_idx) as coupon using(user_idx)) as uc left outer join (select user_idx,concat('찜 ',count(*),'개') as like_cnt from Likes group by user_idx) as likes using(user_idx)) as ucl
-    left outer join (select user_idx,concat('주문내역 ',count(*),'개') as purchase_cnt from (select distinct prod_purchase_idx,user_idx from Product_purchase) as p group by user_idx) as orders using(user_idx) where user_idx=?";
+    $query = "select ucl.user_idx, nickname, user_email, profile_img, point,user_name,user_phone , coupon_cnt, like_cnt, if(orders.purchase_cnt is null,0,orders.purchase_cnt) as order_cnt from (select uc.user_idx, nickname, user_email, profile_img, point,user_name,user_phone, coupon_cnt, if(likes.like_cnt is null,'찜 0개',likes.like_cnt) as like_cnt from(select user.user_idx, nickname, user_email, profile_img, point,user_name,user_phone,if(coupon.coupon_cnt is null,'쿠폰 0개',coupon.coupon_cnt) as coupon_cnt from (select user_idx,nickname,user_email, profile_img,point, user_name, user_phone from User)as user left outer join (select user_idx,concat('쿠폰 ',count(*),'개') as coupon_cnt from Coupon group by user_idx) as coupon using(user_idx)) as uc left outer join (select user_idx,concat('찜 ',count(*),'개') as like_cnt from Likes where like_status='Y' group by user_idx) as likes using(user_idx)) as ucl
+    left outer join (select user_idx,count(*) as purchase_cnt from (select distinct prod_purchase_idx,user_idx from Product_purchase) as p group by user_idx) as orders using(user_idx) where user_idx=?";
 
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getClassCount($user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select user_idx,count(*) as order_cnt from Package_purchase where user_idx=? group by user_idx";
     $st = $pdo->prepare($query);
     //    $st->execute([$param,$param]);
     $st->execute([$user_idx]);
@@ -669,4 +697,258 @@ union (select distinct product_idx, product_name,seller,product_thumb,likes_cnt,
     $pdo = null;
 
     return $res;
+}
+
+function isTakingClass($user_idx,$class_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select distinct Package_purchase.package_idx, Package.class_idx, user_idx from Package_purchase left outer join Package using(package_idx) where user_idx=? and class_idx=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx,$class_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function newWork($user_idx,$class_idx,$w_content,$w_photo){
+    $pdo = pdoSqlConnect();
+
+    $query = "insert into Work_post (user_idx,class_idx,w_content,w_photo) values (?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_idx,$class_idx,$w_content,$w_photo]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function isValidWorkPostIdx($w_post_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select * from Work_post where w_post_idx=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$w_post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+function newWorkComment($user_idx,$w_post_idx,$w_comment,$wc_photo){
+    $pdo = pdoSqlConnect();
+
+    $query = "insert into Work_comment (user_idx,w_post_idx,w_comment,wc_photo) values (?,?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$user_idx,$w_post_idx,$w_comment,$wc_photo]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getWorks(){
+    $pdo = pdoSqlConnect();
+    $query = "select class_idx,nickname,profile_img ,w_post_idx, w_photo, w_content, date_format(Work_post.created_at,'%Y. %c. %e') as w_date from Work_post left outer join User using(user_idx);";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute();
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getFirstComment($w_post_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select nickname,if(length(w_comment)>50,concat(left(w_comment,50),'...'),w_comment) as preview from Work_comment left outer join User using(user_idx) where w_post_idx=? limit 1;";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$w_post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getDetailComments($w_post_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select comment.profile_img, nickname, w_comment, c_date,if(Creator.creator_idx is null,'N',Creator.creator_idx) as isCreator from (select Work_comment.user_idx,profile_img,nickname,w_comment, date_format(Work_comment.created_at,'%Y. %c. %e') as c_date from Work_comment left outer join User using(user_idx) where w_post_idx=?) as comment
+left outer join Creator using(user_idx);";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$w_post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function getDetailWork($w_post_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select * from (select post.w_post_idx, nickname, profile_img, w_photo, w_content, w_date,recommend,class_idx,class_total_info.class_thumb,class_name,class_ctg,user_name from (select Work_post.w_post_idx, nickname,profile_img, class_idx, w_photo, w_content, date_format(Work_post.created_at,'%Y. %c. %e')as w_date,recommend from Work_post
+    left outer join User using (user_idx) where w_post_idx=?)as post left outer join class_total_info using(class_idx))as posting
+left outer join (select w_post_idx,count(*)as c_count from Work_comment group by w_post_idx) as c_count using(w_post_idx);";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$w_post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+}
+
+function isValidUserCoupon($coupon_idx,$user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select * from Coupon where coupon_idx=? and user_idx=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$coupon_idx,$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function getMyInfo($user_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select profile_img,user_name,nickname,user_phone from User where user_idx=?";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res;
+
+}
+
+function updateMypage($user_idx,$new_img,$new_name,$new_nickname,$new_phone){
+    $pdo = pdoSqlConnect();
+
+    $query = "update User set profile_img=?, user_name=?,nickname=?, user_phone=? where user_idx=? limit 1;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$new_img,$new_name,$new_nickname,$new_phone,$user_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function isProdReviewIdx($review_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select * from Product_review where p_review_idx=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$review_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function hasReviewHelp($user_idx,$review_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(select * from Review_help where user_idx=? and p_review_idx=?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx,$review_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+
+function addReviewHelp($user_idx, $review_idx){
+    $pdo = pdoSqlConnect();
+    $help_status='Y';
+    $query = "insert into Review_help (p_review_idx, user_idx,help_status) values (?,?,?);";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$review_idx,$user_idx,$help_status]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function getReviewHelpStatus($user_idx,$review_idx){
+    $pdo = pdoSqlConnect();
+    $query = "select help_status from Review_help where user_idx=? and p_review_idx=?";
+    $st = $pdo->prepare($query);
+    //    $st->execute([$param,$param]);
+    $st->execute([$user_idx,$review_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['help_status'];
+}
+
+function updateReviewHelp($user_idx,$review_idx,$help_status){
+    $pdo = pdoSqlConnect();
+    $query = "update Review_help set help_status=? where user_idx=? and p_review_idx=?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$help_status,$user_idx,$review_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function plusHelpCount($review_idx){
+    $pdo = pdoSqlConnect();
+    $query = "update Product_review set help_count=(help_count+1) where p_review_idx=?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$review_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+function minusHelpCount($review_idx){
+    $pdo = pdoSqlConnect();
+    $query = "update Product_review set help_count=(help_count-1) where p_review_idx=?";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$review_idx]);
+
+    $st = null;
+    $pdo = null;
 }

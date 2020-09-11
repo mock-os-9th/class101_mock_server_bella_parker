@@ -124,6 +124,73 @@ function writePostComment($user_idx, $post_idx, $comment_contents, $comment_phot
     $st = null;
     $pdo = null;
 }
+// 댓글 작성한 user_idx
+function getCommentWriterIdx($comment_idx)
+{
+    $pdo = pdoSqlConnect();
+
+    $query = "select user_idx
+from Community_comment
+where comment_idx = ?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$comment_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['user_idx'];
+}
+
+// 댓글 작성한 user_idx
+function getPostWriterIdx($post_idx)
+{
+    $pdo = pdoSqlConnect();
+
+    $query = "select user_idx
+from Community_post
+where post_idx = ?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+    $st = null;
+    $pdo = null;
+
+    return $res[0]['user_idx'];
+}
+
+// 커뮤니티 게시글 삭제
+function deletePost($post_idx)
+{
+    $pdo = pdoSqlConnect();
+
+    $query = "delete from Community_post
+where post_idx = ?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$post_idx]);
+
+    $st = null;
+    $pdo = null;
+}
+
+// 커뮤니티 댓글 삭제
+function deleteComment($comment_idx)
+{
+    $pdo = pdoSqlConnect();
+
+    $query = "delete from Community_comment
+where comment_idx = ?;";
+
+    $st = $pdo->prepare($query);
+    $st->execute([$comment_idx]);
+
+    $st = null;
+    $pdo = null;
+}
 
 
 
@@ -135,6 +202,20 @@ function isValidPostIdx($post_idx){
 
     $st = $pdo->prepare($query);
     $st->execute([$post_idx]);
+    $st->setFetchMode(PDO::FETCH_ASSOC);
+    $res = $st->fetchAll();
+
+    $st=null;$pdo = null;
+
+    return $res[0]["exist"];
+}
+function isValidCommentIdx($comment_idx){
+    $pdo = pdoSqlConnect();
+    $query = "SELECT EXISTS(SELECT * FROM Community_comment WHERE comment_idx= ?) AS exist;";
+
+
+    $st = $pdo->prepare($query);
+    $st->execute([$comment_idx]);
     $st->setFetchMode(PDO::FETCH_ASSOC);
     $res = $st->fetchAll();
 
